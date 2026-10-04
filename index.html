@@ -1,82 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS & Inventory System</title>
-    <!-- Tailwind CSS CDN for lightweight UI styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Defer loading scripts so HTML renders instantly -->
-    <script src="qr-engine.js" defer></script>
-    <script src="inventory.js" defer></script>
-    <script src="purchase-list.js" defer></script>
-    <script src="app.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bantai Food Co POS</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-amber-50 text-slate-800 min-h-screen">
-
-    <!-- Header Navigation -->
-    <header class="bg-orange-600 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 class="text-xl font-bold">Smart POS System</h1>
-        <div class="space-x-2">
-            <button onclick="switchTab('pos')" class="px-3 py-1 bg-orange-700 hover:bg-orange-800 rounded">POS</button>
-            <button onclick="switchTab('inventory')" class="px-3 py-1 bg-orange-700 hover:bg-orange-800 rounded">Inventory</button>
-            <button onclick="switchTab('purchase')" class="px-3 py-1 bg-orange-700 hover:bg-orange-800 rounded">Purchase List</button>
+<body>
+  <div class="app-container">
+    <!-- Top Header Bar -->
+    <header class="top-header">
+      <div class="brand-info">
+        <div class="logo-avatar">B</div>
+        <div class="brand-details">
+          <h1 class="brand-title">Bantai Food Co</h1>
+          <div class="brand-code-badge">
+            <span id="company-code-display">BANTAI-KITCHEN</span>
+            <button class="text-btn" onclick="openCodeModal()">Change code</button>
+          </div>
         </div>
+      </div>
+
+      <div class="status-controls">
+        <span class="status-indicator online">● Online</span>
+        <span class="status-badge supabase-connected">✓ Connected: Supabase</span>
+        <button class="btn btn-dark" onclick="syncNow()">Sync Now</button>
+        <button class="btn btn-light" onclick="pullCloud()">Pull Cloud</button>
+        <button class="btn btn-orange" onclick="installApp()">Install App</button>
+      </div>
     </header>
 
-    <main class="p-6 max-w-6xl mx-auto">
-        <!-- POS Section -->
-        <section id="sec-pos" class="tab-content">
-            <h2 class="text-2xl font-bold mb-4">Point of Sale</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Product List -->
-                <div class="bg-white p-4 rounded shadow">
-                    <h3 class="font-semibold text-lg mb-2">Select Products</h3>
-                    <div id="pos-product-list" class="space-y-2"></div>
-                </div>
-                <!-- Cart & QR -->
-                <div class="bg-white p-4 rounded shadow">
-                    <h3 class="font-semibold text-lg mb-2">Current Order</h3>
-                    <div id="cart-items" class="min-h-[100px] border-b pb-2 mb-2 text-sm text-gray-600">No items selected</div>
-                    <div class="text-right font-bold text-lg mb-4">Total: ₹<span id="cart-total">0.00</span></div>
-                    <button onclick="generatePaymentQR()" class="w-full bg-emerald-600 text-white py-2 rounded font-semibold hover:bg-emerald-700 mb-4">Generate Payment QR</button>
-                    <div id="qr-container" class="flex justify-center my-2"></div>
-                </div>
-            </div>
-        </section>
+    <div class="sub-status-bar">
+      <span>Online • Last sync: <span id="last-sync-time">05/10/2026, 00:29:16</span></span>
+    </div>
 
-        <!-- Inventory Section -->
-        <section id="sec-inventory" class="tab-content hidden">
-            <h2 class="text-2xl font-bold mb-4">Stock Management</h2>
-            <div class="bg-white p-4 rounded shadow overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b bg-amber-100">
-                            <th class="p-2">Item</th>
-                            <th class="p-2">Stock</th>
-                            <th class="p-2">Min Threshold</th>
-                            <th class="p-2">Unit Cost (₹)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-table-body"></tbody>
-                </table>
-            </div>
-        </section>
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+      <button class="nav-btn" data-tab="pos" onclick="switchTab('pos')">🛒 POS</button>
+      <button class="nav-btn" data-tab="kot" onclick="switchTab('kot')">📋 KOT</button>
+      <button class="nav-btn" data-tab="orders" onclick="switchTab('orders')">🧾 Orders</button>
+      <button class="nav-btn" data-tab="menu" onclick="switchTab('menu')">📝 Menu</button>
+      <button class="nav-btn" data-tab="inventory" onclick="switchTab('inventory')">📦 Inventory</button>
+      <button class="nav-btn" data-tab="reports" onclick="switchTab('reports')">📊 Reports</button>
+      <button class="nav-btn active" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+    </nav>
 
-        <!-- Purchase List Section -->
-        <section id="sec-purchase" class="tab-content hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">Purchase Reorder List</h2>
-                <button onclick="PurchaseModule.generateList()" class="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 font-semibold">Refresh Purchase List</button>
-            </div>
-            <div class="bg-white p-4 rounded shadow">
-                <div id="purchase-list-container">
-                    <p class="text-gray-500">Click "Refresh Purchase List" to scan inventory levels.</p>
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Settings Tab View -->
+      <div id="tab-settings" class="tab-content active">
+        <div class="settings-grid">
+          
+          <!-- Left Panel: Company & Payment Config -->
+          <div class="settings-card light-card">
+            <section class="section-block">
+              <h2 class="card-title">Company Code System</h2>
+              <p class="card-subtitle">Same code on any phone = same data. Unlimited devices. Inventory included.</p>
+              
+              <div class="code-box">
+                <span class="code-text" id="active-company-code">BANTAI-KITCHEN</span>
+                <button class="btn btn-outline-dark" onclick="openCodeModal()">Switch</button>
+                <button class="btn btn-orange" onclick="syncNow()">Sync Now</button>
+              </div>
+
+              <div class="info-list">
+                <p>Install on any phone, enter code <strong>BANTAI-KITCHEN</strong>, Sync Now = same menu, bills, inventory.</p>
+                <p>• BroadcastChannel instant on same device</p>
+                <p>• Supabase cloud for internal sync</p>
+                <p>• All keys: bantai_[code]_inventory_* etc.</p>
+              </div>
+            </section>
+
+            <section class="section-block">
+              <h3 class="section-subtitle">UPI IDs (7738332133@upi & 9022287728@upi)</h3>
+              
+              <div class="input-row">
+                <span class="badge-tag">Primary</span>
+                <input type="text" value="7738332133@upi" class="form-input" id="upi-primary-id" />
+                <input type="text" value="Bantai Food Co" class="form-input" id="upi-primary-name" />
+              </div>
+
+              <div class="input-row">
+                <span class="badge-tag">Secondary</span>
+                <input type="text" value="9022287728@upi" class="form-input" id="upi-secondary-id" />
+                <input type="text" value="Bantai Food Co" class="form-input" id="upi-secondary-name" />
+              </div>
+            </section>
+
+            <section class="section-block">
+              <h3 class="section-subtitle">Oil Settings</h3>
+              <div class="oil-grid">
+                <div class="form-group">
+                  <label>Oil ₹ / L</label>
+                  <input type="number" value="140" class="form-input" id="oil-price" />
                 </div>
+                <div class="form-group">
+                  <label>Plates / 0.5L</label>
+                  <input type="number" value="11" class="form-input" id="oil-plates" />
+                </div>
+              </div>
+            </section>
+
+            <div class="action-buttons">
+              <button class="btn btn-dark btn-wide" onclick="exportData()">Export JSON</button>
+              <button class="btn btn-outline-dark btn-wide" onclick="importData()">Import JSON</button>
+              <button class="btn btn-danger-link" onclick="clearData()">Clear</button>
             </div>
-        </section>
+          </div>
+
+          <!-- Right Panel: Cloud Sync -->
+          <div class="settings-card dark-card">
+            <div class="card-header-dark">
+              <h2>☁️ Cloud Sync (Supabase)</h2>
+              <span class="badge-success">✓ Online & syncing</span>
+            </div>
+
+            <div class="sync-status-box">
+              <div class="status-col">
+                <label>Company Code</label>
+                <div class="value">BANTAI-KITCHEN</div>
+              </div>
+              <div class="status-col">
+                <label>Last Sync</label>
+                <div class="value" id="cloud-last-sync">05/10/2026, 00:29:16</div>
+              </div>
+            </div>
+
+            <p class="sync-description">
+              Every device using this company code shares the same menu, orders and settings.
+              Changes upload within a few seconds when online, and every device checks for updates every few seconds.
+              Offline changes stay on the device and upload automatically when the internet returns.
+            </p>
+
+            <div class="cloud-action-row">
+              <button class="btn btn-orange flex-1" onclick="syncNow()">Sync Now</button>
+              <button class="btn btn-dark-outline flex-1" onclick="pullCloud()">Pull Cloud</button>
+              <button class="btn btn-dark-outline flex-1" onclick="testCloudConnection()">Test</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Other tab views stay managed via app.js -->
+      <div id="tab-pos" class="tab-content"><h2>POS View</h2></div>
+      <div id="tab-kot" class="tab-content"><h2>KOT View</h2></div>
+      <div id="tab-orders" class="tab-content"><h2>Orders View</h2></div>
+      <div id="tab-menu" class="tab-content"><h2>Menu View</h2></div>
+      <div id="tab-inventory" class="tab-content"><h2>Inventory View</h2></div>
+      <div id="tab-reports" class="tab-content"><h2>Reports View</h2></div>
     </main>
 
+    <footer class="app-footer">
+      <span>Bantai Food Co POS</span>
+      <span class="footer-time">10/2026, 00:29:16</span>
+    </footer>
+  </div>
+
+  <script src="qr-engine.js"></script>
+  <script src="inventory.js"></script>
+  <script src="purchase-list.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

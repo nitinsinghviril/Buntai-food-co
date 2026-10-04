@@ -5,229 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bantai Food Co POS</title>
   
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- QR Code Library -->
-  <script>
-    var qrcode=function(){var e=function(e,t){var n=0xEC,r=0x11,o=e,a=QRErrorCorrectionLevel[t],i=null,l=0,c=null,u=[],s={},f=function(e,t){l=4*o+17,i=function(e){for(var t=new Array(e),n=0;n<e;n+=1){t[n]=new Array(e);for(var r=0;r<e;r+=1)t[n][r]=null}return t}(l),d(0,0),d(l-7,0),d(0,l-7),v(),g(),m(e,t),o>=7&&p(e),null==c&&(c=x(o,a,u)),h(c,t)},d=function(e,t){for(var n=-1;n<=7;n+=1)if(!(e+n<=-1||l<=e+n))for(var r=-1;r<=7;r+=1)c+r<=-1||l<=c+r||(0<=n&&n<=6&&(0==r||6==r)||0<=r&&r<=6&&(0==n||6==n)||2<=n&&n<=4&&2<=r&&r<=4?i[e+n][t+r]=!0:i[e+n][t+r]=!1)},g=function(){for(var e=8;e<l-8;e+=1)null==i[e][6]&&(i[e][6]=e%2==0);for(var t=8;t<l-8;t+=1)null==i[6][t]&&(i[6][t]=t%2==0)},v=function(){for(var e=QRUtil.getPatternPosition(o),t=0;t<e.length;t+=1)for(var n=0;n<e.length;n+=1){var r=e[t],a=e[n];if(null==i[r][a])for(var c=-2;c<=2;c+=1)for(var u=-2;u<=2;u+=1)-2==c||2==c||-2==u||2==u||0==c&&0==u?i[r+c][a+u]=!0:i[r+c][a+u]=!1}},p=function(e){for(var t=QRUtil.getBCHTypeNumber(o),n=0;n<18;n+=1){var r=!e&&(t>>n&1)==1;i[Math.floor(n/3)][n%3+l-8-3]=r}for(n=0;n<18;n+=1){r=!e&&(t>>n&1)==1;i[n%3+l-8-3][Math.floor(n/3)]=r}},m=function(e,t){for(var n=a<<3|t,r=QRUtil.getBCHTypeInfo(n),o=0;o<15;o+=1){var c=!e&&(r>>o&1)==1;o<6?i[o][8]=c:o<8?i[o+1][8]=c:i[l-15+o][8]=c}for(o=0;o<15;o+=1){c=!e&&(r>>o&1)==1;o<8?i[8][l-o-1]=c:o<9?i[8][15-o-1+1]=c:i[8][15-o-1]=c}i[l-8][8]=!e},h=function(e,t){for(var n=-1,r=l-1,o=7,a=0,c=QRUtil.getMaskFunction(t),u=l-1;u>0;u-=2)for(6==u&&(u-=1);;){for(var s=0;s<2;s+=1)if(null==i[r][u-s]){var f=!1;a<e.length&&(f=(e[a]>>>o&1)==1),c(r,u-s)&&(f=!f),i[r][u-s]=f,-1==--o&&(a+=1,o=7)}if((r+=n)<0||l<=r){r-=n,n=-n;break}}};s.addData=function(e,t){var n=null;switch(t=t||"Byte"){case"Numeric":n=qrNumber(e);break;case"Alphanumeric":n=qrAlphaNum(e);break;case"Byte":n=qr8BitByte(e);break;case"Kanji":n=qrKanji(e);break;default:throw"mode:"+t}u.push(n),c=null},s.isDark=function(e,t){if(e<0||l<=e||t<0||l<=t)throw e+","+t;return i[e][t]},s.getModuleCount=function(){return l},s.make=function(){if(o<1){for(var e=1;e<40;e++){for(var t=QRRSBlock.getRSBlocks(e,a),n=qrBitBuffer(),r=0;r<u.length;r++){var i=u[r];n.put(i.getMode(),4),n.put(i.getLength(),QRUtil.getLengthInBits(i.getMode(),e)),i.write(n)}for(var l=0,c=0;c<t.length;c++)l+=t[c].dataCount;if(n.getLengthInBits()<=8*l)break}o=e}f(!1,function(){for(var e=0,t=0,n=0;n<8;n+=1){f(!0,n);var r=QRUtil.getLostPoint(s);(0==n||e>r)&&(e=r,t=n)}return t}())};return s};return e}();
-  </script>
-
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
-    body { background-color: #f4f6f8; color: #333; }
-    header { background: #1e293b; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-    header h1 { font-size: 20px; }
-    .nav-tabs { display: flex; gap: 10px; background: #0f172a; padding: 10px 20px; }
-    .nav-tabs button { background: transparent; border: none; color: #94a3b8; padding: 8px 16px; cursor: pointer; font-size: 14px; border-radius: 4px; }
-    .nav-tabs button.active { background: #2563eb; color: white; font-weight: bold; }
-    
-    .container { padding: 20px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Layout Grids */
-    .pos-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
-    th { background-color: #f8fafc; font-weight: 600; }
-    
-    /* Buttons */
-    .btn { background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
-    .btn:hover { background: #1d4ed8; }
-    .btn-danger { background: #ef4444; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-success { background: #10b981; }
-
-    /* Forms */
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-    .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
-
-    /* KOT Cards */
-    .kot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-    .kot-card { border: 2px solid #e2e8f0; border-radius: 8px; padding: 15px; background: #fff; }
-    .kot-header { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 10px; }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>Bantai Food Co POS System</h1>
-    <span id="connectionStatus" style="color: #10b981; font-size: 14px;">● Connected to Supabase</span>
-  </header>
-
-  <nav class="nav-tabs">
-    <button class="active" onclick="switchTab('posTab', this)">Billing POS</button>
-    <button onclick="switchTab('kotTab', this)">Active KOTs</button>
-    <button onclick="switchTab('inventoryTab', this)">Inventory & Ingredients</button>
-    <button onclick="switchTab('reportsTab', this)">Purchase List & Reports</button>
-  </nav>
-
-  <div class="container">
-
-    <!-- POS / BILLING TAB -->
-    <div id="posTab" class="tab-content active">
-      <div class="pos-grid">
-        <div class="card">
-          <h2>Menu Items</h2>
-          <table id="menuTable">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="menuList">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <h2>Current Order / KOT</h2>
-          <div class="form-group" style="margin-top: 10px;">
-            <label>Table Number:</label>
-            <input type="text" id="tableNo" value="Table 1">
-          </div>
-          <table id="cartTable">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody id="cartList"></tbody>
-          </table>
-          <h3 style="margin-top: 15px; text-align: right;">Total: ₹<span id="cartTotal">0.00</span></h3>
-          <button class="btn btn-success" style="width: 100%; margin-top: 15px;" onclick="placeOrder()">Send to KOT & Print</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- KOT TAB -->
-    <div id="kotTab" class="tab-content">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2>Kitchen Order Tickets (KOT)</h2>
-        <button class="btn btn-danger" onclick="resetKotSequence()">Reset Order Counter to #1</button>
-      </div>
-      <div class="kot-grid" id="kotContainer">
-        <!-- Dynamically populated KOT Cards -->
-      </div>
-    </div>
-
-    <!-- INVENTORY & INGREDIENTS TAB -->
-    <div id="inventoryTab" class="tab-content">
-      <div class="pos-grid">
-        <div class="card">
-          <h2>Stock & Raw Ingredients</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Ingredient / Item</th>
-                <th>Current Stock</th>
-                <th>Min Threshold</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="inventoryList"></tbody>
-          </table>
-        </div>
-
-        <div class="card">
-          <h2>Add / Update Ingredient</h2>
-          <form id="ingredientForm" onsubmit="saveIngredient(event)">
-            <div class="form-group">
-              <label>Ingredient Name</label>
-              <input type="text" id="ingName" required>
-            </div>
-            <div class="form-group">
-              <label>Initial Stock Quantity</label>
-              <input type="number" id="ingQty" step="0.01" required>
-            </div>
-            <div class="form-group">
-              <label>Unit (kg, g, L, pcs)</label>
-              <input type="text" id="ingUnit" required>
-            </div>
-            <div class="form-group">
-              <label>Minimum Threshold (Alert Level)</label>
-              <input type="number" id="ingThreshold" required>
-            </div>
-            <button type="submit" class="btn" style="width: 100%;">Save Ingredient</button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- REPORTS & PURCHASE LIST TAB -->
-    <div id="reportsTab" class="tab-content">
-      <div class="card">
-        <h2>Stock & Purchase Recommendations</h2>
-        <p style="margin-bottom: 15px; color: #64748b;">Generates required purchase stock based on inventory levels below defined threshold.</p>
-        <button class="btn" id="generatePurchaseBtn" onclick="generatePurchaseList()">Generate Purchase List</button>
-        
-        <div id="purchaseListContainer" style="margin-top: 20px;">
-          <!-- Purchase output renders here -->
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // --- SUPABASE CONFIGURATION ---
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let currentCart = [];
-    let menuData = [
-      { id: 1, name: 'Classic Burger', category: 'Food', price: 120 },
-      { id: 2, name: 'Cold Coffee', category: 'Beverages', price: 80 }
-    ];
-
-    // Initialize App
-    document.addEventListener('DOMContentLoaded', () => {
-      renderMenu();
-      loadInventory();
-      loadKots();
-    });
-
-    // Tab Navigation
-    function switchTab(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-tabs button').forEach(el =>To clear up your first question: **In a standard frontend HTML/JavaScript app, the Supabase URL and `anon` public API key are written directly inside the JavaScript code in your `index.html` file.** 
-
-When your browser opens `index.html`, the JavaScript script initializes the Supabase client (`supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)`), allowing your webpage to read and write directly to your database. There is no separate backend needed for this setup—it runs completely inside the browser.
-
----
-
-Here is the complete, single-file `index.html`. It contains:
-1. **Integrated QR Code Library** (fixed and closed properly).
-2. **Supabase Client Integration**.
-3. **Working "Generate Purchase List" Functionality**.
-4. **Ingredients & Inventory Management**.
-5. **KOT Order Deletion with Dynamic Renumbering & Reset Options**.
-6. **Sales Logging** to feed your future standalone dashboard.
-
-*(Make sure to update `YOUR_SUPABASE_URL` and `YOUR_SUPABASE_ANON_KEY` in the JavaScript section at the bottom.)*
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bantai Food Co POS</title>
-  
   <!-- Supabase JS Library -->
-  <script src="[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2)"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -244,6 +23,7 @@ Here is the complete, single-file `index.html`. It contains:
     body { background-color: var(--bg); color: var(--text); padding: 20px; }
     header { background: var(--surface); padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
     h1 { color: var(--primary); font-size: 1.5rem; }
+    
     .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab-btn { padding: 10px 20px; border: none; background: #e0e0e0; border-radius: 6px; cursor: pointer; font-weight: bold; }
     .tab-btn.active { background: var(--primary); color: white; }
@@ -258,12 +38,14 @@ Here is the complete, single-file `index.html`. It contains:
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b71c1c; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
     th { background: #f8f9fa; }
 
-    .kot-card { border-left: 4px solid var(--primary); background: #f9f9f9; padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .kot-card { border-left: 5px solid var(--primary); background: #f9f9f9; padding: 15px; margin-bottom: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .token-badge { background: var(--primary); color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 1.1rem; }
   </style>
 
   <script>
@@ -300,14 +82,14 @@ Here is the complete, single-file `index.html`. It contains:
 
   <header>
     <h1>Bantai Food Co POS</h1>
-    <span id="pos-status">Status: Connected to Supabase</span>
+    <span id="pos-status" style="color: green; font-weight: bold;">● Connected to Supabase</span>
   </header>
 
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('posTab')">POS / Order</button>
-    <button class="tab-btn" onclick="switchTab('kotTab')">KOT Screen</button>
-    <button class="tab-btn" onclick="switchTab('inventoryTab')">Inventory & Ingredients</button>
-    <button class="tab-btn" onclick="switchTab('reportsTab')">Reports & Purchases</button>
+    <button class="tab-btn active" onclick="switchTab(event, 'posTab')">POS / Billing</button>
+    <button class="tab-btn" onclick="switchTab(event, 'kotTab')">Active KOTs</button>
+    <button class="tab-btn" onclick="switchTab(event, 'inventoryTab')">Inventory & Ingredients</button>
+    <button class="tab-btn" onclick="switchTab(event, 'reportsTab')">Purchase List</button>
   </div>
 
   <!-- POS TAB -->
@@ -315,18 +97,24 @@ Here is the complete, single-file `index.html`. It contains:
     <div class="grid-container">
       <div>
         <h3>Menu Items</h3>
+        <br>
         <div class="card" id="menu-items">
-          <button class="btn-primary" onclick="addToCart(1, 'Burger', 120)">Add Burger (₹120)</button>
-          <button class="btn-primary" onclick="addToCart(2, 'Fries', 80)">Add Fries (₹80)</button>
+          <button class="btn-primary" onclick="addToCart(1, 'Classic Burger', 120)">Add Classic Burger (₹120)</button>
+          <button class="btn-primary" onclick="addToCart(2, 'French Fries', 80)">Add French Fries (₹80)</button>
+          <button class="btn-primary" onclick="addToCart(3, 'Cold Coffee', 90)">Add Cold Coffee (₹90)</button>
         </div>
       </div>
       <div>
         <h3>Current Order</h3>
         <div class="card">
+          <div style="margin-bottom: 10px;">
+            <label><strong>Table / Order Type:</strong></label>
+            <input type="text" id="tableNo" value="T-1" style="width: 100%; padding: 6px; margin-top: 4px;">
+          </div>
           <ul id="cart-list" style="list-style: none; margin-bottom: 15px;"></ul>
-          <h4>Total: ₹<span id="cart-total">0</span></h4>
+          <h4>Total: ₹<span id="cart-total">0.00</span></h4>
           <br>
-          <button class="btn-primary" style="width: 100%; padding: 12px;" onclick="placeOrder()">Send to KOT & Pay</button>
+          <button class="btn-primary" style="width: 100%; padding: 12px;" onclick="placeOrder()">Send to KOT & Save</button>
         </div>
       </div>
     </div>
@@ -335,22 +123,22 @@ Here is the complete, single-file `index.html`. It contains:
   <!-- KOT TAB -->
   <div id="kotTab" class="tab-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3>Active KOT Orders</h3>
-      <button class="btn-danger" onclick="resetDailyKotCounter()">Reset KOT Counter to #1</button>
+      <h3>Kitchen Order Tickets (KOT)</h3>
+      <button class="btn-danger" onclick="resetDailyKotCounter()">Reset KOT Tokens to T001</button>
     </div>
-    <div id="kot-list"></div>
+    <div id="kot-list">Loading KOT orders...</div>
   </div>
 
   <!-- INVENTORY TAB -->
   <div id="inventoryTab" class="tab-content">
-    <h3>Inventory & Raw Ingredients</h3>
+    <h3>Inventory & Ingredients Stock</h3>
     <table id="inventory-table">
       <thead>
         <tr>
-          <th>Item / Ingredient Name</th>
-          <th>Stock Level</th>
+          <th>Ingredient / Item</th>
+          <th>Stock Quantity</th>
           <th>Min Threshold</th>
-          <th>Actions</th>
+          <th>Unit</th>
         </tr>
       </thead>
       <tbody id="inventory-list"></tbody>
@@ -359,7 +147,7 @@ Here is the complete, single-file `index.html`. It contains:
 
   <!-- REPORTS & PURCHASES TAB -->
   <div id="reportsTab" class="tab-content">
-    <h3>Reports & Purchase Order Generation</h3>
+    <h3>Purchase Recommendations</h3>
     <br>
     <button class="btn-primary" id="generatePurchaseBtn" onclick="generatePurchaseList()">Generate Purchase List</button>
     <br><br>
@@ -372,21 +160,24 @@ Here is the complete, single-file `index.html`. It contains:
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // --- STATE MANAGEMENT ---
     let cart = [];
-    let kotSequence = parseInt(localStorage.getItem('kot_daily_sequence') || '1');
 
-    function switchTab(tabId) {
+    // Format integer to Token string (e.g., 1 -> T001, 12 -> T012)
+    function formatToken(num) {
+      return 'T' + String(num).padStart(3, '0');
+    }
+
+    function switchTab(evt, tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
+      evt.target.classList.add('active');
 
       if (tabId === 'kotTab') loadKotOrders();
       if (tabId === 'inventoryTab') loadInventory();
     }
 
-    // --- POS LOGIC ---
+    // --- POS & CART FUNCTIONS ---
     function addToCart(id, name, price) {
       const existing = cart.find(i => i.id === id);
       if (existing) {
@@ -403,60 +194,147 @@ Here is the complete, single-file `index.html`. It contains:
       let total = 0;
       cart.forEach(item => {
         total += item.price * item.qty;
-        cartList.innerHTML += `<li>${item.name} x ${item.qty} - ₹${item.price * item.qty}</li>`;
+        cartList.innerHTML += `<li style="margin-bottom: 5px;">${item.name} x ${item.qty} - ₹${(item.price * item.qty).toFixed(2)}</li>`;
       });
-      document.getElementById('cart-total').innerText = total;
+      document.getElementById('cart-total').innerText = total.toFixed(2);
     }
 
     async function placeOrder() {
       if (cart.length === 0) return alert('Cart is empty!');
 
       const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const currentKotNumber = kotSequence;
+      const tableNo = document.getElementById('tableNo').value || 'Takeaway';
 
       // 1. Save KOT Order to Supabase
-      const { data: kotData, error: kotError } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from('kot_orders')
-        .insert([{ sequence_num: currentKotNumber, items: cart, status: 'active' }])
+        .insert([{ table_no: tableNo, status: 'active', total_amount: totalAmount }])
         .select();
 
-      // 2. Log Sales Transaction to Supabase
-      await supabaseClient
-        .from('sales')
-        .insert([{ total_amount: totalAmount, items: cart }]);
+      if (error) {
+        alert('Error saving order: ' + error.message);
+        return;
+      }
 
-      // 3. Deduct linked ingredients from Inventory
+      // Save line items for order if order_items table is used
+      if (data && data[0]) {
+        const orderId = data[0].id;
+        const itemsToInsert = cart.map(item => ({
+          order_id: orderId,
+          item_name: item.name,
+          quantity: item.qty,
+          unit_price: item.price
+        }));
+        await supabaseClient.from('order_items').insert(itemsToInsert);
+      }
+
+      // Deduct ingredients automatically
       await deductIngredientsForOrder(cart);
 
-      if (!kotError) {
-        alert(`Order placed successfully! KOT #${currentKotNumber}`);
-        kotSequence++;
-        localStorage.setItem('kot_daily_sequence', kotSequence.toString());
-        cart = [];
-        renderCart();
+      alert('Order placed successfully!');
+      cart = [];
+      renderCart();
+    }
+
+    // --- KOT MANAGEMENT & DYNAMIC TOKEN RENUMBERING ---
+    async function loadKotOrders() {
+      const container = document.getElementById('kot-list');
+      container.innerHTML = 'Loading active KOTs...';
+
+      const { data: orders, error } = await supabaseClient
+        .from('kot_orders')
+        .select('*')
+        .eq('status', 'active')
+        .order('id', { ascending: true });
+
+      if (error) {
+        container.innerHTML = '<p style="color:red;">Failed to load KOTs: ' + error.message + '</p>';
+        return;
+      }
+
+      if (!orders || orders.length === 0) {
+        container.innerHTML = '<p>No active KOT orders found.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+
+      // Re-sequence token numbers dynamically (T001, T002...) so deleted orders never leave gaps
+      orders.forEach((order, index) => {
+        const tokenDisplay = formatToken(index + 1);
+        
+        container.innerHTML += `
+          <div class="kot-card">
+            <div>
+              <span class="token-badge">${tokenDisplay}</span>
+              <strong style="margin-left: 10px;">Table/Type: ${order.table_no || 'Takeaway'}</strong>
+              <div style="margin-top: 8px; font-size: 0.95rem; color: #555;">
+                Total: ₹${parseFloat(order.total_amount || 0).toFixed(2)} | Placed: ${new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              </div>
+            </div>
+            <div>
+              <button class="btn-danger" onclick="deleteKotOrder(${order.id})">Cancel / Delete Order</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function deleteKotOrder(orderId) {
+      if (!confirm("Are you sure you want to delete this order? Remaining active orders will be automatically re-sequenced.")) return;
+
+      const { error } = await supabaseClient
+        .from('kot_orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) {
+        alert('Failed to delete order: ' + error.message);
       } else {
-        alert('Error placing order: ' + kotError.message);
+        loadKotOrders(); // Refresh screen to re-calculate token sequence
+      }
+    }
+
+    async function resetDailyKotCounter() {
+      if (!confirm("This will clear or archive all active KOT orders to restart token numbers from T001. Continue?")) return;
+
+      // Update active orders status to 'completed'
+      const { error } = await supabaseClient
+        .from('kot_orders')
+        .update({ status: 'completed' })
+        .eq('status', 'active');
+
+      if (error) {
+        alert('Failed to reset counter: ' + error.message);
+      } else {
+        alert('Token counter reset! Next order will start at T001.');
+        loadKotOrders();
       }
     }
 
     // --- INVENTORY & INGREDIENT DEDUCTION LOGIC ---
     async function loadInventory() {
-      const { data, error } = await supabaseClient.from('inventory').select('*');
       const container = document.getElementById('inventory-list');
-      container.innerHTML = '';
+      container.innerHTML = 'Loading inventory...';
 
-      if (data) {
-        data.forEach(item => {
-          container.innerHTML += `
-            <tr>
-              <td>${item.name}</td>
-              <td>${item.stock_quantity} ${item.unit || ''}</td>
-              <td>${item.min_threshold || 5} ${item.unit || ''}</td>
-              <td><button onclick="updateStock(${item.id})">Edit</button></td>
-            </tr>
-          `;
-        });
+      const { data, error } = await supabaseClient.from('inventory').select('*').order('name', { ascending: true });
+
+      if (error || !data) {
+        container.innerHTML = '<tr><td colspan="4" style="color:red;">Failed to load inventory.</td></tr>';
+        return;
       }
+
+      container.innerHTML = '';
+      data.forEach(item => {
+        container.innerHTML += `
+          <tr>
+            <td><strong>${item.name}</strong></td>
+            <td>${item.stock_quantity}</td>
+            <td>${item.min_threshold || 5}</td>
+            <td>${item.unit || 'pcs'}</td>
+          </tr>
+        `;
+      });
     }
 
     async function deductIngredientsForOrder(orderItems) {
@@ -466,7 +344,7 @@ Here is the complete, single-file `index.html`. It contains:
           .select('ingredient_id, qty_required')
           .eq('menu_item_id', item.id);
 
-        if (recipe) {
+        if (recipe && recipe.length > 0) {
           for (const ing of recipe) {
             const { data: currentIng } = await supabaseClient
               .from('inventory')
@@ -486,22 +364,22 @@ Here is the complete, single-file `index.html`. It contains:
       }
     }
 
-    // --- PURCHASE LIST GENERATOR FIX ---
+    // --- PURCHASE LIST GENERATOR ---
     async function generatePurchaseList() {
       const container = document.getElementById('purchaseListContainer');
-      container.innerHTML = "<p>Analyzing inventory levels...</p>";
+      container.innerHTML = "<p>Checking inventory levels...</p>";
 
       const { data: inventory, error } = await supabaseClient.from('inventory').select('*');
 
       if (error || !inventory) {
-        container.innerHTML = "<p>Error loading inventory data.</p>";
+        container.innerHTML = "<p style='color:red;'>Error fetching inventory data.</p>";
         return;
       }
 
       const lowStock = inventory.filter(item => (item.stock_quantity || 0) <= (item.min_threshold || 5));
 
       if (lowStock.length === 0) {
-        container.innerHTML = "<div style='color: green;'><strong>All inventory items are well-stocked!</strong></div>";
+        container.innerHTML = "<p style='color: green; font-weight: bold;'>All stock levels are optimal! No purchases required.</p>";
         return;
       }
 
@@ -512,7 +390,7 @@ Here is the complete, single-file `index.html`. It contains:
               <th>Ingredient / Item</th>
               <th>Current Stock</th>
               <th>Min Threshold</th>
-              <th>Suggested Reorder Qty</th>
+              <th>Suggested Order Qty</th>
             </tr>
           </thead>
           <tbody>
@@ -526,7 +404,7 @@ Here is the complete, single-file `index.html`. It contains:
         html += `
           <tr>
             <td><strong>${item.name}</strong></td>
-            <td style="color: red;">${current} ${item.unit || ''}</td>
+            <td style="color: red; font-weight: bold;">${current} ${item.unit || ''}</td>
             <td>${min} ${item.unit || ''}</td>
             <td><strong>${suggested > 0 ? suggested : min} ${item.unit || ''}</strong></td>
           </tr>
@@ -537,51 +415,19 @@ Here is the complete, single-file `index.html`. It contains:
       container.innerHTML = html;
     }
 
-    // --- KOT DELETION & SEQUENCE RENUMBERING ---
-    async function loadKotOrders() {
-      const { data: orders } = await supabaseClient
-        .from('kot_orders')
-        .select('*')
-        .eq('status', 'active')
-        .order('sequence_num', { ascending: true });
-
-      const container = document.getElementById('kot-list');
-      container.innerHTML = '';
-
-      if (orders) {
-        orders.forEach((order, index) => {
-          // Display sequence matches continuous list order
-          const displayNum = index + 1;
-          const itemsText = order.items.map(i => `${i.name} x${i.qty}`).join(', ');
-
-          container.innerHTML += `
-            <div class="kot-card">
-              <div>
-                <strong>KOT #${displayNum}</strong> (Original ID: #${order.sequence_num})<br>
-                <span>Items: ${itemsText}</span>
-              </div>
-              <button class="btn-danger" onclick="deleteKotOrder(${order.id})">Cancel / Delete</button>
-            </div>
-          `;
-        });
-      }
+    // Realtime connection setup for instant KOT updates
+    function setupRealtimeKOT() {
+      supabaseClient
+        .channel('public:kot_orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'kot_orders' }, () => {
+          loadKotOrders();
+        })
+        .subscribe();
     }
 
-    async function deleteKotOrder(orderId) {
-      if (!confirm("Are you sure you want to delete this KOT order?")) return;
-
-      await supabaseClient.from('kot_orders').delete().eq('id', orderId);
-      loadKotOrders(); // Re-renders and automatically updates the sequence view
-    }
-
-    function resetDailyKotCounter() {
-      if (confirm("Reset daily KOT sequence counter to #1?")) {
-        kotSequence = 1;
-        localStorage.setItem('kot_daily_sequence', '1');
-        alert("KOT sequence reset to 1!");
-        loadKotOrders();
-      }
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      setupRealtimeKOT();
+    });
   </script>
 </body>
 </html>

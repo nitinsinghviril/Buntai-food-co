@@ -1,22 +1,368 @@
-/* Custom App Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #f6f6f3;
+  color: #1a1a1a;
+  padding: 16px;
 }
 
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Top Header */
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.brand-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #ff5722;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.brand-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.brand-code-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.text-btn {
+  background: none;
+  border: none;
+  color: #888;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.status-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-indicator {
+  font-size: 13px;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.status-badge {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.sub-status-bar {
+  font-size: 11px;
+  color: #888;
+  margin: 6px 0 14px 4px;
+}
+
+/* Navigation */
+.main-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.nav-btn {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn.active {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+/* Content & Settings Layout */
 .tab-content {
-    transition: opacity 0.15s ease-in-out;
+  display: none;
 }
 
-.tab-content.hidden {
-    display: none;
+.tab-content.active {
+  display: block;
 }
 
-#qr-container canvas, 
-#qr-container img {
-    max-width: 200px;
-    height: auto;
-    border: 2px solid #e2e8f0;
-    padding: 8px;
-    border-radius: 8px;
-    background: #ffffff;
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settings-card {
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.light-card {
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dark-card {
+  background-color: #121516;
+  color: #ffffff;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 16px;
+}
+
+.section-block {
+  margin-bottom: 24px;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.code-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.code-text {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.info-list {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Inputs */
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.badge-tag {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  width: 70px;
+  text-align: center;
+}
+
+.form-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+  font-size: 13px;
+  background-color: #fafafa;
+}
+
+.oil-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 11px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-dark {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.btn-light {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.btn-orange {
+  background-color: #ff5722;
+  color: #ffffff;
+}
+
+.btn-outline-dark {
+  border: 1px solid #ccc;
+  background: transparent;
+  color: #ffffff;
+}
+
+.light-card .btn-outline-dark {
+  color: #333;
+}
+
+.btn-wide {
+  padding: 10px 20px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-danger-link {
+  background: none;
+  border: none;
+  color: #e53935;
+  cursor: pointer;
+  font-size: 13px;
+  margin-left: auto;
+}
+
+/* Dark Card Elements */
+.card-header-dark {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.badge-success {
+  background-color: #1b382b;
+  color: #00e676;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.sync-status-box {
+  background-color: #1c2022;
+  border-radius: 8px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.status-col label {
+  font-size: 11px;
+  color: #888;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.status-col .value {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sync-description {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.cloud-action-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-dark-outline {
+  background-color: #252a2c;
+  color: #ffffff;
+  border: none;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 24px;
+  padding: 0 4px;
 }

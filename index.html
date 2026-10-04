@@ -17,42 +17,46 @@
     .nav button.active { background: var(--primary); color: white; }
     .tab-content { display: none; background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .tab-content.active { display: block; }
-    .kot-card { border-left: 5px solid var(--primary); background: #f9f9f9; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .order-card { border-left: 5px solid var(--primary); background: #f9f9f9; padding: 12px; margin-bottom: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
     .btn { padding: 8px 14px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-primary { background: var(--primary); color: white; }
+    .summary-text { font-size: 1.1rem; font-weight: bold; color: #333; }
   </style>
 </head>
 <body>
 
   <header>
-    <h2>Bantai Food Co POS</h2>
+    <div>
+      <h2 style="margin-bottom: 5px;">Bantai Food Co POS</h2>
+      <!-- Dynamic Header Metrics -->
+      <div id="dynamic-order-summary" class="summary-text">All Orders · 0 bills · Tokens: 0 used</div>
+    </div>
     <div>
       <span id="network-status" class="status-pill online">Online</span>
-      <span id="token-summary" style="margin-left: 10px; font-weight: bold;">Tokens Active: 0</span>
     </div>
   </header>
 
   <div class="nav">
     <button class="active" onclick="showTab('pos')">POS</button>
-    <button onclick="showTab('kot')">KOT Kitchen Display</button>
+    <button onclick="showTab('orders')">Orders / KOT</button>
   </div>
 
   <!-- POS TAB -->
   <div id="pos" class="tab-content active">
-    <h3>New Order</h3>
+    <h3>Place New Order</h3>
     <br>
-    <button class="btn btn-primary" onclick="createOrder('Burger', 120)">Add Classic Burger (₹120)</button>
-    <button class="btn btn-primary" onclick="createOrder('Fries', 80)">Add French Fries (₹80)</button>
+    <button class="btn btn-primary" onclick="createOrder('Classic Burger', 120)">Add Classic Burger (₹120)</button>
+    <button class="btn btn-primary" onclick="createOrder('French Fries', 80)">Add French Fries (₹80)</button>
   </div>
 
-  <!-- KOT TAB -->
-  <div id="kot" class="tab-content">
+  <!-- ORDERS & KOT TAB -->
+  <div id="orders" class="tab-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3>Active KOT Tickets</h3>
-      <button class="btn btn-danger" onclick="clearAllKot()">Reset Daily Counter</button>
+      <h3>Active Orders List</h3>
+      <button class="btn btn-danger" onclick="clearAllOrders()">Reset All Orders</button>
     </div>
-    <div id="kot-list">Loading orders...</div>
+    <div id="orders-container">Loading orders...</div>
   </div>
 
   <script>
@@ -62,7 +66,6 @@
 
     let isOnline = navigator.onLine;
 
-    // Monitor Network Connectivity
     window.addEventListener('online', () => updateNetworkStatus(true));
     window.addEventListener('offline', () => updateNetworkStatus(false));
 
@@ -79,10 +82,10 @@
       document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       event.target.classList.add('active');
-      if (tabId === 'kot') renderKOTs();
+      if (tabId === 'orders') fetchAndRenderOrders();
     }
 
-    // --- ORDER PLACEMENT (OFFLINE + ONLINE SAFE) ---
+    // --- CREATE ORDER ---
     async function createOrder(itemName, price) {
       const orderPayload = {
         item_name: itemName,
@@ -93,16 +96,13 @@
       };
 
       if (!isOnline) {
-        // Save to offline storage if network is down
         const offlineQueue = JSON.parse(localStorage.getItem('offline_orders') || '[]');
         offlineQueue.push(orderPayload);
         localStorage.setItem('offline_orders', JSON.stringify(offlineQueue));
-        alert('Saved locally in Offline Mode! Will sync automatically when online.');
-        renderKOTs();
+        fetchAndRenderOrders();
         return;
       }
 
-      // Online Save to Supabase
       const { error } = await supabaseClient.from('kot_orders').insert([{
         table_no: 'Takeaway',
         status: 'active',
@@ -110,11 +110,13 @@
       }]);
 
       if (error) {
-        alert('Save error: ' + error.message);
+        alert('Error saving order: ' + error.message);
+      } else {
+        fetchAndRenderOrders();
       }
     }
 
-    // --- SYNC OFFLINE QUEUE TO SUPABASE ---
+    // --- SYNC OFFLINE QUEUE ---
     async function syncOfflineOrders() {
       const offlineQueue = JSON.parse(localStorage.getItem('offline_orders') || '[]');
       if (offlineQueue.length === 0) return;
@@ -128,92 +130,101 @@
       }
 
       localStorage.removeItem('offline_orders');
-      alert('Offline orders successfully synced to Supabase!');
-      renderKOTs();
+      fetchAndRenderOrders();
     }
 
-    // --- KOT RENDERING & DYNAMIC TOKEN RENUMBERING ---
-    async function renderKOTs() {
-      const container = document.getElementById('kot-list');
-      
-      // Fetch online orders
-      let orders = [];
+    // --- RENDER ORDERS & RE-CALCULATE METRICS DYNAMICALLY ---
+    async function fetchAndRenderOrders() {
+      const container = document.getElementById('orders-container');
+      const summaryHeader = document.getElementById('dynamic-order-summary');
+
+      let onlineOrders = [];
       if (isOnline) {
         const { data, error } = await supabaseClient
           .from('kot_orders')
           .select('*')
           .eq('status', 'active')
           .order('id', { ascending: true });
-        
-        if (!error && data) orders = data;
+
+        if (!error && data) onlineOrders = data;
       }
 
-      // Append un-synced local offline orders
       const offlineOrders = JSON.parse(localStorage.getItem('offline_orders') || '[]');
-      const combinedOrders = [...orders, ...offlineOrders];
+      const allActiveOrders = [...onlineOrders, ...offlineOrders];
 
-      document.getElementById('token-summary').innerText = `Tokens Active: ${combinedOrders.length}`;
+      // DYNAMIC CALCULATION: Strictly derived from active array length
+      const totalActive = allActiveOrders.length;
+      summaryHeader.innerText = `All Orders · ${totalActive} bills · Tokens: ${totalActive} used`;
 
-      if (combinedOrders.length === 0) {
-        container.innerHTML = '<p>No active orders.</p>';
+      if (totalActive === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:#777;"><strong>No orders yet</strong><br>Place order in POS tab</div>';
         return;
       }
 
       container.innerHTML = '';
-      combinedOrders.forEach((order, idx) => {
-        const tokenNo = 'T' + String(idx + 1).padStart(3, '0');
+      allActiveOrders.forEach((order, index) => {
+        const tokenNumber = 'T' + String(index + 1).padStart(3, '0');
         container.innerHTML += `
-          <div class="kot-card">
+          <div class="order-card">
             <div>
-              <strong style="font-size: 1.1rem; color: var(--primary);">${tokenNo}</strong> - ₹${order.total_amount}
+              <strong style="font-size: 1.1rem; color: var(--primary);">${tokenNumber}</strong> 
+              <span style="margin-left: 10px;">${order.table_no || 'Takeaway'} - ₹${order.total_amount}</span>
             </div>
-            <button class="btn btn-danger" onclick="deleteOrder(${order.id || order.offline_id})">Delete / Cancel</button>
+            <button class="btn btn-danger" onclick="deleteOrder(${order.id || order.offline_id})">Delete Order</button>
           </div>
         `;
       });
     }
 
-    // --- DELETE / CANCEL ORDER ---
+    // --- DELETE ORDER (EXACT SYNC) ---
     async function deleteOrder(orderId) {
-      if (!confirm('Are you sure you want to cancel this order?')) return;
+      if (!confirm('Are you sure you want to delete this order?')) return;
 
-      // Handle local offline order deletion
+      // Clear from local offline cache if present
       let offlineOrders = JSON.parse(localStorage.getItem('offline_orders') || '[]');
       if (offlineOrders.some(o => o.offline_id === orderId)) {
         offlineOrders = offlineOrders.filter(o => o.offline_id !== orderId);
         localStorage.setItem('offline_orders', JSON.stringify(offlineOrders));
-        renderKOTs();
+        fetchAndRenderOrders();
         return;
       }
 
-      // Handle Supabase DB deletion
+      // Delete from Supabase DB
       const { error } = await supabaseClient.from('kot_orders').delete().eq('id', orderId);
-      if (error) alert('Error deleting order: ' + error.message);
-      else renderKOTs();
-    }
-
-    async function clearAllKot() {
-      if (!confirm('Reset token counter to T001 for all active orders?')) return;
-      localStorage.removeItem('offline_orders');
-      if (isOnline) {
-        await supabaseClient.from('kot_orders').update({ status: 'completed' }).eq('status', 'active');
+      if (error) {
+        alert('Failed to delete order: ' + error.message);
+      } else {
+        fetchAndRenderOrders(); // Recalculates and updates header immediately
       }
-      renderKOTs();
     }
 
-    // --- SUPABASE REALTIME SUBSCRIPTION (ZERO POLLING WASTE) ---
+    async function clearAllOrders() {
+      if (!confirm('Clear all active orders and reset tokens back to 0?')) return;
+      localStorage.removeItem('offline_orders');
+      localStorage.removeItem('tokens_used'); // Clear legacy cache keys
+      if (isOnline) {
+        await supabaseClient.from('kot_orders').delete().eq('status', 'active');
+      }
+      fetchAndRenderOrders();
+    }
+
+    // Realtime Subscriptions
     function initRealtime() {
       supabaseClient
         .channel('public:kot_orders')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'kot_orders' }, () => {
-          renderKOTs(); // Syncs instantly across all devices on insert/delete/update
+          fetchAndRenderOrders();
         })
         .subscribe();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Clear legacy static counters from browser on startup
+      localStorage.removeItem('tokens_used');
+      localStorage.removeItem('token_count');
+
       initRealtime();
-      renderKOTs();
+      fetchAndRenderOrders();
     });
   </script>
 </body>

@@ -22,15 +22,17 @@
     .btn-danger { background: var(--danger); color: white; }
     .btn-primary { background: var(--primary); color: white; }
     .summary-text { font-size: 1.1rem; font-weight: bold; color: #333; }
+    .version-tag { font-size: 0.75rem; color: #888; font-weight: normal; margin-top: 4px; }
   </style>
 </head>
 <body>
 
   <header>
     <div>
-      <h2 style="margin-bottom: 5px;">Bantai Food Co POS</h2>
-      <!-- Dynamic Header Metrics -->
-      <div id="dynamic-order-summary" class="summary-text">All Orders · 0 bills · Tokens: 0 used</div>
+      <h2 style="margin: 0;">Bantai Food Co POS</h2>
+      <!-- Dynamic Metric Summary Header -->
+      <div id="dynamic-order-summary" class="summary-text" style="margin-top: 5px;">All Orders · 0 bills · Tokens: 0 used</div>
+      <div class="version-tag">Version: v2.0.0 - Supabase WebSocket Realtime Enabled</div>
     </div>
     <div>
       <span id="network-status" class="status-pill online">Online</span>
@@ -50,22 +52,26 @@
     <button class="btn btn-primary" onclick="createOrder('French Fries', 80)">Add French Fries (₹80)</button>
   </div>
 
-  <!-- ORDERS & KOT TAB -->
+  <!-- ORDERS TAB -->
   <div id="orders" class="tab-content">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
       <h3>Active Orders List</h3>
-      <button class="btn btn-danger" onclick="clearAllOrders()">Reset All Orders</button>
+      <button class="btn btn-danger" onclick="clearAllOrders()">Reset All Active Orders</button>
     </div>
     <div id="orders-container">Loading orders...</div>
   </div>
 
   <script>
+    // ==========================================
+    // REPLACE THESE WITH YOUR SUPABASE CREDENTIALS
+    // ==========================================
     const SUPABASE_URL = 'YOUR_SUPABASE_URL';
     const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let isOnline = navigator.onLine;
 
+    // Monitor Network Connectivity
     window.addEventListener('online', () => updateNetworkStatus(true));
     window.addEventListener('offline', () => updateNetworkStatus(false));
 
@@ -85,7 +91,7 @@
       if (tabId === 'orders') fetchAndRenderOrders();
     }
 
-    // --- CREATE ORDER ---
+    // --- CREATE NEW ORDER ---
     async function createOrder(itemName, price) {
       const orderPayload = {
         item_name: itemName,
@@ -96,6 +102,7 @@
       };
 
       if (!isOnline) {
+        // Fallback to local storage during internet outage
         const offlineQueue = JSON.parse(localStorage.getItem('offline_orders') || '[]');
         offlineQueue.push(orderPayload);
         localStorage.setItem('offline_orders', JSON.stringify(offlineQueue));
@@ -110,13 +117,12 @@
       }]);
 
       if (error) {
-        alert('Error saving order: ' + error.message);
-      } else {
-        fetchAndRenderOrders();
+        alert('Error creating order: ' + error.message);
       }
+      // Note: No manual re-fetch needed here! WebSocket listener handles it instantly.
     }
 
-    // --- SYNC OFFLINE QUEUE ---
+    // --- SYNC LOCAL OFFLINE QUEUE TO SUPABASE ---
     async function syncOfflineOrders() {
       const offlineQueue = JSON.parse(localStorage.getItem('offline_orders') || '[]');
       if (offlineQueue.length === 0) return;
@@ -133,7 +139,7 @@
       fetchAndRenderOrders();
     }
 
-    // --- RENDER ORDERS & RE-CALCULATE METRICS DYNAMICALLY ---
+    // --- RENDER ORDERS & COMPUTE DYNAMIC TOKENS ---
     async function fetchAndRenderOrders() {
       const container = document.getElementById('orders-container');
       const summaryHeader = document.getElementById('dynamic-order-summary');
@@ -152,12 +158,12 @@
       const offlineOrders = JSON.parse(localStorage.getItem('offline_orders') || '[]');
       const allActiveOrders = [...onlineOrders, ...offlineOrders];
 
-      // DYNAMIC CALCULATION: Strictly derived from active array length
+      // Direct calculation from live array length
       const totalActive = allActiveOrders.length;
       summaryHeader.innerText = `All Orders · ${totalActive} bills · Tokens: ${totalActive} used`;
 
       if (totalActive === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:30px; color:#777;"><strong>No orders yet</strong><br>Place order in POS tab</div>';
+        container.innerHTML = '<div style="text-align:center; padding:30px; color:#777;"><strong>No active orders</strong><br>Place order in POS tab</div>';
         return;
       }
 
@@ -176,11 +182,11 @@
       });
     }
 
-    // --- DELETE ORDER (EXACT SYNC) ---
+    // --- DELETE ORDER ---
     async function deleteOrder(orderId) {
       if (!confirm('Are you sure you want to delete this order?')) return;
 
-      // Clear from local offline cache if present
+      // Handle offline order deletion
       let offlineOrders = JSON.parse(localStorage.getItem('offline_orders') || '[]');
       if (offlineOrders.some(o => o.offline_id === orderId)) {
         offlineOrders = offlineOrders.filter(o => o.offline_id !== orderId);
@@ -189,37 +195,45 @@
         return;
       }
 
-      // Delete from Supabase DB
+      // Delete from Supabase Database
       const { error } = await supabaseClient.from('kot_orders').delete().eq('id', orderId);
       if (error) {
         alert('Failed to delete order: ' + error.message);
-      } else {
-        fetchAndRenderOrders(); // Recalculates and updates header immediately
       }
+      // Note: No manual re-fetch needed here! Realtime event catches deletions automatically.
     }
 
     async function clearAllOrders() {
-      if (!confirm('Clear all active orders and reset tokens back to 0?')) return;
+      if (!confirm('Clear all active orders and reset active token count?')) return;
       localStorage.removeItem('offline_orders');
-      localStorage.removeItem('tokens_used'); // Clear legacy cache keys
+      localStorage.removeItem('tokens_used');
+      localStorage.removeItem('token_count');
+
       if (isOnline) {
         await supabaseClient.from('kot_orders').delete().eq('status', 'active');
       }
       fetchAndRenderOrders();
     }
 
-    // Realtime Subscriptions
+    // --- SUPABASE REALTIME WEBSOCKET SUBSCRIPTION ---
     function initRealtime() {
       supabaseClient
         .channel('public:kot_orders')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'kot_orders' }, () => {
-          fetchAndRenderOrders();
-        })
-        .subscribe();
+        .on(
+          'postgres_changes', 
+          { event: '*', schema: 'public', table: 'kot_orders' }, 
+          (payload) => {
+            console.log('Realtime DB Event:', payload.eventType);
+            fetchAndRenderOrders();
+          }
+        )
+        .subscribe((status) => {
+          console.log('Supabase Realtime Status:', status);
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Clear legacy static counters from browser on startup
+      // Clear legacy state keys
       localStorage.removeItem('tokens_used');
       localStorage.removeItem('token_count');
 

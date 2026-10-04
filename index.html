@@ -12,6 +12,7 @@
 </head>
 <body>
   <div class="app-container">
+    
     <!-- Top Header Bar -->
     <header class="top-header">
       <div class="brand-info">
@@ -30,135 +31,264 @@
         <span class="status-badge supabase-connected">✓ Connected: Supabase</span>
         <button class="btn btn-dark" onclick="syncNow()">Sync Now</button>
         <button class="btn btn-light" onclick="pullCloud()">Pull Cloud</button>
-        <button class="btn btn-orange" onclick="installApp()">Install App</button>
+        <button class="btn btn-subtle">Add to Home Screen for offline</button>
       </div>
     </header>
 
     <div class="sub-status-bar">
-      <span>Online • Last sync: <span id="last-sync-time">05/10/2026, 00:29:16</span></span>
+      <span>Online • Last sync: <span id="last-sync-time">05/10/2026, 01:20:49</span></span>
     </div>
 
-    <!-- Navigation Bar -->
-    <nav class="main-nav">
-      <button class="nav-btn" data-tab="pos" onclick="switchTab('pos')">🛒 POS</button>
-      <button class="nav-btn" data-tab="kot" onclick="switchTab('kot')">📋 KOT</button>
-      <button class="nav-btn" data-tab="orders" onclick="switchTab('orders')">🧾 Orders</button>
-      <button class="nav-btn" data-tab="menu" onclick="switchTab('menu')">📝 Menu</button>
-      <button class="nav-btn" data-tab="inventory" onclick="switchTab('inventory')">📦 Inventory</button>
-      <button class="nav-btn" data-tab="reports" onclick="switchTab('reports')">📊 Reports</button>
-      <button class="nav-btn active" data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
-    </nav>
+    <!-- POS Layout Grid -->
+    <div class="pos-layout">
+      
+      <!-- Left Column: Menu Items & Navigation -->
+      <div class="pos-left">
+        
+        <!-- Category Filters -->
+        <div class="category-pills">
+          <button class="pill active">All</button>
+          <button class="pill">🍔 Burgers</button>
+          <button class="pill">🥟 Momos Steam</button>
+          <button class="pill">🔥 Momos Fried</button>
+          <button class="pill">⭐ Specials</button>
+          <button class="pill">🥤 Drinks</button>
+        </div>
 
-    <!-- Main Content Area -->
-    <main class="content-area">
-      <!-- Settings Tab View -->
-      <div id="tab-settings" class="tab-content active">
-        <div class="settings-grid">
+        <!-- Search Bar -->
+        <div class="search-box">
+          <input type="text" placeholder="Search menu..." id="menu-search" />
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="menu-grid">
           
-          <!-- Left Panel: Company & Payment Config -->
-          <div class="settings-card light-card">
-            <section class="section-block">
-              <h2 class="card-title">Company Code System</h2>
-              <p class="card-subtitle">Same code on any phone = same data. Unlimited devices. Inventory included.</p>
-              
-              <div class="code-box">
-                <span class="code-text" id="active-company-code">BANTAI-KITCHEN</span>
-                <button class="btn btn-outline-dark" onclick="openCodeModal()">Switch</button>
-                <button class="btn btn-orange" onclick="syncNow()">Sync Now</button>
-              </div>
-
-              <div class="info-list">
-                <p>Install on any phone, enter code <strong>BANTAI-KITCHEN</strong>, Sync Now = same menu, bills, inventory.</p>
-                <p>• BroadcastChannel instant on same device</p>
-                <p>• Supabase cloud for internal sync</p>
-                <p>• All keys: bantai_[code]_inventory_* etc.</p>
-              </div>
-            </section>
-
-            <section class="section-block">
-              <h3 class="section-subtitle">UPI IDs (7738332133@upi & 9022287728@upi)</h3>
-              
-              <div class="input-row">
-                <span class="badge-tag">Primary</span>
-                <input type="text" value="7738332133@upi" class="form-input" id="upi-primary-id" />
-                <input type="text" value="Bantai Food Co" class="form-input" id="upi-primary-name" />
-              </div>
-
-              <div class="input-row">
-                <span class="badge-tag">Secondary</span>
-                <input type="text" value="9022287728@upi" class="form-input" id="upi-secondary-id" />
-                <input type="text" value="Bantai Food Co" class="form-input" id="upi-secondary-name" />
-              </div>
-            </section>
-
-            <section class="section-block">
-              <h3 class="section-subtitle">Oil Settings</h3>
-              <div class="oil-grid">
-                <div class="form-group">
-                  <label>Oil ₹ / L</label>
-                  <input type="number" value="140" class="form-input" id="oil-price" />
-                </div>
-                <div class="form-group">
-                  <label>Plates / 0.5L</label>
-                  <input type="number" value="11" class="form-input" id="oil-plates" />
-                </div>
-              </div>
-            </section>
-
-            <div class="action-buttons">
-              <button class="btn btn-dark btn-wide" onclick="exportData()">Export JSON</button>
-              <button class="btn btn-outline-dark btn-wide" onclick="importData()">Import JSON</button>
-              <button class="btn btn-danger-link" onclick="clearData()">Clear</button>
-            </div>
+          <div class="menu-card">
+            <div class="card-title">Burger Plain</div>
+            <div class="card-price">₹80</div>
+            <div class="card-cat">Burgers</div>
           </div>
 
-          <!-- Right Panel: Cloud Sync -->
-          <div class="settings-card dark-card">
-            <div class="card-header-dark">
-              <h2>☁️ Cloud Sync (Supabase)</h2>
-              <span class="badge-success">✓ Online & syncing</span>
-            </div>
+          <div class="menu-card">
+            <div class="card-title">Cheese Burger</div>
+            <div class="card-price">₹100</div>
+            <div class="card-cat">Burgers</div>
+          </div>
 
-            <div class="sync-status-box">
-              <div class="status-col">
-                <label>Company Code</label>
-                <div class="value">BANTAI-KITCHEN</div>
-              </div>
-              <div class="status-col">
-                <label>Last Sync</label>
-                <div class="value" id="cloud-last-sync">05/10/2026, 00:29:16</div>
-              </div>
-            </div>
+          <div class="menu-card">
+            <div class="card-title">Peri Peri Burger</div>
+            <div class="card-price">₹120</div>
+            <div class="card-cat">Burgers</div>
+          </div>
 
-            <p class="sync-description">
-              Every device using this company code shares the same menu, orders and settings.
-              Changes upload within a few seconds when online, and every device checks for updates every few seconds.
-              Offline changes stay on the device and upload automatically when the internet returns.
-            </p>
-
-            <div class="cloud-action-row">
-              <button class="btn btn-orange flex-1" onclick="syncNow()">Sync Now</button>
-              <button class="btn btn-dark-outline flex-1" onclick="pullCloud()">Pull Cloud</button>
-              <button class="btn btn-dark-outline flex-1" onclick="testCloudConnection()">Test</button>
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Veg Steam Momo</span>
+              <span class="piece-tag">5 pcs</span>
             </div>
+            <div class="card-price">₹100</div>
+            <div class="card-cat">Momos Steam</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Peri Peri Steam</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹120</div>
+            <div class="card-cat">Momos Steam</div>
+          </div>
+
+          <!-- Active/Selected Card Highlight -->
+          <div class="menu-card selected">
+            <div class="card-header-row">
+              <span class="card-title">Paneer Steam</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹120</div>
+            <div class="card-cat">Momos Steam</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Corn Cheese Steam</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹130</div>
+            <div class="card-cat">Momos Steam</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Veg Fried Momo</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹120</div>
+            <div class="card-cat">Momos Fried</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Peri Peri Fried</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹140</div>
+            <div class="card-cat">Momos Fried</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Paneer Fried</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹140</div>
+            <div class="card-cat">Momos Fried</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-header-row">
+              <span class="card-title">Corn Cheese Fried</span>
+              <span class="piece-tag">5 pcs</span>
+            </div>
+            <div class="card-price">₹150</div>
+            <div class="card-cat">Momos Fried</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-title">Jhal Muri</div>
+            <div class="card-price">₹60</div>
+            <div class="card-cat">Specials</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-title">Makhana Bhel</div>
+            <div class="card-price">₹100</div>
+            <div class="card-cat">Specials</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-title">Kathi Roll</div>
+            <div class="card-price">₹100</div>
+            <div class="card-cat">Specials</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-title">Tang</div>
+            <div class="card-price">₹50</div>
+            <div class="card-cat">Drinks</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-title">Cold Coffee</div>
+            <div class="card-price">₹100</div>
+            <div class="card-cat">Drinks</div>
+          </div>
+
+          <div class="menu-card">
+            <div class="card-title">Lebu Julep</div>
+            <div class="card-price">₹30</div>
+            <div class="card-cat">Drinks</div>
           </div>
 
         </div>
       </div>
 
-      <!-- Other tab views stay managed via app.js -->
-      <div id="tab-pos" class="tab-content"><h2>POS View</h2></div>
-      <div id="tab-kot" class="tab-content"><h2>KOT View</h2></div>
-      <div id="tab-orders" class="tab-content"><h2>Orders View</h2></div>
-      <div id="tab-menu" class="tab-content"><h2>Menu View</h2></div>
-      <div id="tab-inventory" class="tab-content"><h2>Inventory View</h2></div>
-      <div id="tab-reports" class="tab-content"><h2>Reports View</h2></div>
-    </main>
+      <!-- Right Column: Cart Panel -->
+      <div class="cart-panel">
+        <div class="cart-header">
+          <h2>Cart • 1 Items</h2>
+          <button class="btn-clear">Clear</button>
+        </div>
 
-    <footer class="app-footer">
-      <span>Bantai Food Co POS</span>
-      <span class="footer-time">10/2026, 00:29:16</span>
-    </footer>
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <div class="cart-item-title">Paneer Steam</div>
+            <div class="cart-item-sub">₹120 x 1 = ₹120</div>
+          </div>
+          <div class="cart-qty-control">
+            <button class="qty-btn">-</button>
+            <span class="qty-num">1</span>
+            <button class="qty-btn">+</button>
+          </div>
+        </div>
+
+        <!-- Pricing Summary -->
+        <div class="cart-summary">
+          <div class="summary-row">
+            <select class="discount-select">
+              <option>No discount</option>
+            </select>
+            <span class="saved-tag">Save ₹0</span>
+          </div>
+
+          <div class="summary-row text-muted">
+            <span>Subtotal</span>
+            <span>₹120</span>
+          </div>
+
+          <div class="summary-row text-muted">
+            <span>Discount</span>
+            <span>-₹0</span>
+          </div>
+
+          <div class="summary-row total-row">
+            <span>Total</span>
+            <span class="total-price">₹120</span>
+          </div>
+        </div>
+
+        <!-- Payment Method Selector -->
+        <div class="payment-tabs">
+          <button class="pay-btn">CASH</button>
+          <button class="pay-btn active">UPI</button>
+          <button class="pay-btn">MIXED</button>
+        </div>
+
+        <button class="btn-pending-mode">PENDING</button>
+
+        <!-- Account Selector -->
+        <div class="upi-accounts">
+          <div class="account-card active">
+            <div class="acc-badge">Primary ●</div>
+            <div class="acc-id">7738332133@upi</div>
+            <div class="acc-name">Bantai Food Co</div>
+          </div>
+          <div class="account-card">
+            <div class="acc-badge">Secondary</div>
+            <div class="acc-id">9022287728@upi</div>
+            <div class="acc-name">Bantai Food Co</div>
+          </div>
+        </div>
+
+        <!-- UPI QR Code Block -->
+        <div class="qr-block">
+          <div class="qr-header">
+            <span>UPI QR • Primary</span>
+            <span class="pill-dark">₹120 • 7007</span>
+          </div>
+
+          <div class="qr-code-wrapper">
+            <!-- Simulated QR code matching screenshot -->
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=7738332133@upi%26pn=Bantai%20Food%20Co%26am=120" alt="UPI QR Code" />
+          </div>
+
+          <div class="pay-to-info">
+            <p>Pay to</p>
+            <strong>7738332133@upi</strong>
+            <p>Bantai Food Co - Bantai Food Co</p>
+            <p class="qr-disclaimer">QR contains upi://pay?pa=7738332133@upi&pn=Bantai%20Food%20Co&am=120&tn=Order%207007. Customer scans with Paytm/GPay/PhonePe on their device.</p>
+          </div>
+
+          <div class="qr-actions">
+            <button class="btn-action">Copy UPI ID</button>
+            <button class="btn-action">Copy Link</button>
+            <button class="btn-action orange">Open UPI App</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
   </div>
 
   <script src="qr-engine.js"></script>

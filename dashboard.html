@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bantai Food Co · Dashboard</title>
+<script src="config.js"></script>
+<style>
+:root{--bg:#f6f5f3;--card:#fff;--ink:#1c1917;--mut:#78716c;--line:#e7e5e4;--acc:#f97316;--accd:#c2410c;--grn:#047857;--red:#b91c1c;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#161412;--card:#201d1a;--ink:#f5f5f4;--mut:#a8a29e;--line:#34302c;--acc:#fb923c;--accd:#fdba74;--grn:#34d399;--red:#f87171;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0}h2{font-size:15px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+select,input,button{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+button{cursor:pointer}button.p{background:var(--acc);border-color:var(--acc);color:#1c1917;font-weight:600}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.kpi .l{color:var(--mut);font-size:12.5px}.kpi .v{font-size:24px;font-weight:700;margin-top:2px}.kpi .s{font-size:12px;color:var(--mut)}
+.kpi.main{background:var(--ink);color:var(--bg)}.kpi.main .l,.kpi.main .s{color:inherit;opacity:.7}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:6px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}.row b{font-weight:600}.row .n{text-align:right;font-variant-numeric:tabular-nums}
+.meter{grid-column:1/-1;height:5px;background:var(--line);border-radius:3px;overflow:hidden}.meter i{display:block;height:100%;background:var(--acc)}
+.hours{display:flex;align-items:flex-end;gap:3px;height:110px}.hours div{flex:1;background:var(--acc);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.hl{display:flex;gap:3px;font-size:10px;color:var(--mut)}.hl span{flex:1;text-align:center}
+.sess{display:flex;align-items:flex-end;gap:6px;height:130px;overflow-x:auto;padding-bottom:2px}
+.sess div{min-width:34px;flex:1;background:var(--acc);border-radius:4px 4px 0 0;cursor:pointer;opacity:.55}.sess div.on{opacity:1}
+.sl{display:flex;gap:6px;font-size:10px;color:var(--mut);overflow:hidden}.sl span{min-width:34px;flex:1;text-align:center}
+.mut{color:var(--mut);font-size:12.5px}.neg{color:var(--red)}
+#login{max-width:360px;margin:12vh auto}#login input{width:100%;margin:10px 0}
+.hide{display:none!important}.err{color:var(--red);min-height:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="login" class="card">
+  <h1>Bantai Food Co dashboard</h1>
+  <p class="mut">Enter your company code to see sales.</p>
+  <input id="code" placeholder="Company code" autocomplete="off" autocapitalize="characters">
+  <button class="p" id="go" style="width:100%">Open dashboard</button>
+  <p class="err" id="err"></p>
+</div>
+
+<div id="app" class="hide">
+  <div class="top">
+    <div><h1>Bantai Food Co</h1><div class="mut" id="meta"></div></div>
+    <div class="bar">
+      <button id="refresh">Refresh</button>
+      <button id="csv">Download CSV</button>
+      <button id="out">Change code</button>
+    </div>
+  </div>
+
+  <div class="card bar">
+    <select id="fSession" aria-label="Session"></select>
+    <select id="fPay" aria-label="Payment">
+      <option value="all">All payments</option><option value="cash">Cash</option>
+      <option value="upi">UPI</option><option value="pending">Pending</option>
+    </select>
+    <select id="fCat" aria-label="Category"><option value="all">All categories</option></select>
+    <span class="mut" id="sessNote"></span>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="card"><h2>Category-wise sales</h2><div id="cats"></div></div>
+    <div class="card"><h2>Item-wise sales</h2><div id="items"></div></div>
+    <div class="card"><h2>Sales by session</h2><div class="sess" id="trend"></div><div class="sl" id="trendL"></div><p class="mut" id="trendNote">Tap a bar to filter to that session.</p></div>
+    <div class="card"><h2>Busy hours (IST)</h2><div class="hours" id="hours"></div><div class="hl" id="hoursL"></div></div>
+    <div class="card"><h2>Ingredients used</h2><div id="mats"></div></div>
+    <div class="card"><h2>Pending payments</h2><div id="pend"></div></div>
+  </div>
+</div>
+</div>
+
+<script>
+const CFG = window.DASH_CONFIG, TZ = "Asia/Kolkata";
+const $ = id => document.getElementById(id);
+const inr = n => "₹" + Math.round(n).toLocaleString("en-IN");
+const dt = ms => new Date(ms).toLocaleString("en-IN",{timeZone:TZ,day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const parse = d => { if(typeof d==="string"){try{return JSON.parse(d)}catch(e){return null}} return d; };
+
+let code="", orders=[], menu={}, sessions=[], sessSource="", selSession="";
+
+async function rpc(fn, body){
+  const r = await fetch(`${CFG.SUPABASE_URL}/rest/v1/rpc/${fn}`,{method:"POST",
+    headers:{apikey:CFG.SUPABASE_KEY,Authorization:"Bearer "+CFG.SUPABASE_KEY,"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error((await r.text()).slice(0,200));
+  return r.json();
+}
+
+/* ---------- load ---------- */
+async function load(){
+  const [rows, comp] = await Promise.all([rpc("dash_orders",{p_code:code}), rpc("dash_company",{p_code:code})]);
+  const c = parse(comp) || {};
+  menu = {}; (c.menu||[]).forEach(m=>menu[m.id]=m);
+  orders = rows.map(r=>{
+    const o = parse(r.data); if(!o) return null;
+    o.createdAt = o.createdAt || Number(r.created_at);
+    return o;
+  }).filter(Boolean);
+  buildSessions(c);
+  fillCats();
+  $("meta").textContent = `${orders.length} orders · updated ${dt(Date.now())}`;
+  render();
+}
+
+/* ---------- sessions ---------- */
+function findSessionData(obj){
+  const out={list:[],cur:null};
+  (function walk(o,d){
+    if(!o||typeof o!=="object"||d>4) return;
+    for(const [k,v] of Object.entries(o)){
+      if(Array.isArray(v) && /session/i.test(k)){
+        v.forEach(s=>{ if(s&&typeof s==="object"){
+          const st=pick(s,/^(start|started|startat|startedat|open|opened|openedat|from)$/i);
+          const en=pick(s,/^(end|ended|endat|endedat|close|closed|closedat|to)$/i);
+          if(st) out.list.push({start:st,end:en||null});
+        }});
+      } else if(typeof v==="number" && /session/i.test(k) && /start|open|since/i.test(k)) out.cur=v;
+      else if(typeof v==="object") walk(v,d+1);
+    }
+  })(obj,0);
+  return out;
+}
+function pick(o,re){ for(const k of Object.keys(o)) if(re.test(k)&&typeof o[k]==="number") return o[k]; return null; }
+
+function buildSessions(c){
+  const f = findSessionData(c);
+  let list = f.list.slice();
+  if(f.cur && !list.some(s=>s.start===f.cur)) list.push({start:f.cur,end:null});
+  if(list.length){ sessSource="Sessions from your POS settings"; }
+  else{
+    sessSource="Sessions guessed from gaps of 4+ hours between orders";
+    const t=orders.map(o=>o.createdAt).sort((a,b)=>a-b); let s=null,last=null;
+    t.forEach(x=>{ if(s===null){s=x} else if(x-last>4*3600e3){list.push({start:s,end:last});s=x} last=x; });
+    if(s!==null) list.push({start:s,end:null});
+  }
+  list.sort((a,b)=>b.start-a.start);
+  sessions=list.map((s,i)=>({...s,id:String(s.start),open:!s.end,
+    label:`${dt(s.start)} → ${s.end?dt(s.end):"now"}`}));
+  selSession = sessions[0]?.id || "all";
+  const sel=$("fSession");
+  sel.innerHTML = `<option value="all">All sessions</option>`+sessions.map(s=>`<option value="${s.id}">${s.open?"● Current · ":""}${esc(s.label)}</option>`).join("");
+  sel.value=selSession;
+  $("sessNote").textContent=sessSource;
+}
+const inSession = (o,s)=> o.createdAt>=s.start && (!s.end || o.createdAt<=s.end);
+
+/* ---------- helpers ---------- */
+const itemInfo = it => { const m=menu[it.menuId||it.menuid]; return {name:m?m.name:"Unknown ("+(it.menuId||it.menuid)+")",cat:m?m.category:"Other"}; };
+const orderTotal = o => Number(o.finalTotal ?? o.total ?? 0);
+const isPending = o => o.paymentMethod==="pending" || o.paymentStatus==="pending" || o.paymentStatus==="unpaid";
+const pendAmt = o => isPending(o) ? Math.max(0, orderTotal(o)-(+o.cashAmount||0)-(+o.upiAmount||0)) : 0;
+
+function fillCats(){
+  const cats=[...new Set([...Object.values(menu).map(m=>m.category),"Other"])];
+  $("fCat").innerHTML=`<option value="all">All categories</option>`+cats.map(c=>`<option>${esc(c)}</option>`).join("");
+}
+
+function filtered(){
+  let r=orders;
+  const s=sessions.find(x=>x.id===selSession); if(s) r=r.filter(o=>inSession(o,s));
+  const p=$("fPay").value;
+  if(p==="cash") r=r.filter(o=>(+o.cashAmount||0)>0);
+  if(p==="upi") r=r.filter(o=>(+o.upiAmount||0)>0);
+  if(p==="pending") r=r.filter(isPending);
+  return r;
+}
+
+const bars=(rows,max)=>rows.map(r=>`<div class="row"><b>${esc(r[0])}</b><span class="n">${r[1]}</span><span class="mut">${r[2]||""}</span><span class="mut n">${r[3]||""}</span><div class="meter"><i style="width:${max?Math.max(2,r[4]/max*100):0}%"></i></div></div>`).join("")||`<p class="mut">No data for this filter.</p>`;
+
+/* ---------- render ---------- */
+function render(){
+  const r=filtered(), cat=$("fCat").value;
+  const sales=r.reduce((a,o)=>a+orderTotal(o),0);
+  const cash=r.reduce((a,o)=>a+(+o.cashAmount||0),0);
+  const upi={primary:0,secondary:0};
+  r.forEach(o=>{const a=+o.upiAmount||0; if(a) upi[o.upiId==="secondary"?"secondary":"primary"]+=a;});
+  const disc=r.reduce((a,o)=>a+(+o.discountAmount||0),0);
+  const pend=r.reduce((a,o)=>a+pendAmt(o),0);
+  let qty=0; r.forEach(o=>(o.items||[]).forEach(i=>qty+=+i.qty||0));
+  const K=(l,v,s,c)=>`<div class="card kpi ${c||""}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s||"&nbsp;"}</div></div>`;
+  $("kpis").innerHTML =
+    K("Total sales",inr(sales),`${r.length} bills`,"main")+
+    K("Average bill",inr(r.length?sales/r.length:0),`${(qty/(r.length||1)).toFixed(1)} items per bill`)+
+    K("Items sold",qty,"")+
+    K("Cash",inr(cash),sales?Math.round(cash/sales*100)+"% of sales":"")+
+    K("UPI primary",inr(upi.primary),"")+
+    K("UPI secondary",inr(upi.secondary),"")+
+    K("Discounts",inr(disc),"given")+
+    K("Pending",inr(pend),r.filter(isPending).length+" bills");
+
+  // category + item
+  const cm={}, im={};
+  r.forEach(o=>(o.items||[]).forEach(i=>{
+    const n=itemInfo(i), rev=(+i.qty||0)*(+i.price||0);
+    if(cat!=="all" && n.cat!==cat) return;
+    (cm[n.cat]??={q:0,v:0}); cm[n.cat].q+=+i.qty||0; cm[n.cat].v+=rev;
+    (im[n.name]??={q:0,v:0,c:n.cat}); im[n.name].q+=+i.qty||0; im[n.name].v+=rev;
+  }));
+  const tot=Object.values(cm).reduce((a,x)=>a+x.v,0)||1;
+  const cs=Object.entries(cm).sort((a,b)=>b[1].v-a[1].v);
+  $("cats").innerHTML=bars(cs.map(([k,x])=>[k,inr(x.v),x.q+" sold",Math.round(x.v/tot*100)+"%",x.v]),cs[0]?.[1].v);
+  const is=Object.entries(im).sort((a,b)=>b[1].v-a[1].v);
+  $("items").innerHTML=bars(is.map(([k,x])=>[k,inr(x.v),x.q+" sold · "+x.c,Math.round(x.v/tot*100)+"%",x.v]),is[0]?.[1].v);
+
+  // sessions trend (oldest→newest, last 14)
+  const sv=sessions.slice(0,14).reverse().map(s=>({s,v:orders.filter(o=>inSession(o,s)).reduce((a,o)=>a+orderTotal(o),0)}));
+  const mx=Math.max(1,...sv.map(x=>x.v));
+  $("trend").innerHTML=sv.map(x=>`<div data-id="${x.s.id}" class="${x.s.id===selSession?"on":""}" style="height:${Math.max(3,x.v/mx*100)}%" title="${esc(x.s.label)} · ${inr(x.v)}"></div>`).join("");
+  $("trendL").innerHTML=sv.map(x=>`<span>${new Date(x.s.start).toLocaleDateString("en-IN",{timeZone:TZ,day:"numeric",month:"short"})}</span>`).join("");
+  $("trend").querySelectorAll("div").forEach(d=>d.onclick=()=>{selSession=d.dataset.id;$("fSession").value=selSession;render()});
+
+  // hours
+  const h=Array(24).fill(0);
+  r.forEach(o=>{const x=+new Date(o.createdAt).toLocaleString("en-GB",{timeZone:TZ,hour:"2-digit",hour12:false}); h[x%24]+=orderTotal(o);});
+  const order=[...Array(24).keys()].map(i=>(i+10)%24); // 10:00 → 09:00
+  const hm=Math.max(1,...h);
+  $("hours").innerHTML=order.map(i=>`<div style="height:${h[i]/hm*100}%" title="${i}:00 · ${inr(h[i])}"></div>`).join("");
+  $("hoursL").innerHTML=order.map(i=>`<span>${i%3===0?i:""}</span>`).join("");
+
+  // ingredients
+  const mt={};
+  r.forEach(o=>(o.deductedMaterials||[]).forEach(m=>{const k=(m.name||m.materialId).trim()+"|"+m.unit;(mt[k]??=0);mt[k]+=+m.qty||0;}));
+  const ms=Object.entries(mt).sort((a,b)=>b[1]-a[1]);
+  $("mats").innerHTML=ms.length?ms.map(([k,v])=>{const [n,u]=k.split("|");return `<div class="row"><b>${esc(n)}</b><span class="n">${+v.toFixed(2)} ${esc(u||"")}</span></div>`}).join(""):`<p class="mut">No ingredient usage recorded.</p>`;
+
+  // pending
+  const pl=r.filter(isPending);
+  $("pend").innerHTML=pl.length?pl.map(o=>`<div class="row"><b>${esc(o.token||"")} ${esc(o.customerName||"")}</b><span class="n neg">${inr(pendAmt(o))}</span><span class="mut">${dt(o.createdAt)}</span></div>`).join(""):`<p class="mut">Nothing pending.</p>`;
+}
+
+/* ---------- csv ---------- */
+$("csv").onclick=()=>{
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const lines=[["Token","Time (IST)","Items","Total","Discount","Cash","UPI","UPI account","Status","Payment"].map(q).join(",")];
+  filtered().forEach(o=>lines.push([o.token,dt(o.createdAt),(o.items||[]).map(i=>itemInfo(i).name+" x"+i.qty).join("; "),orderTotal(o),o.discountAmount||0,o.cashAmount||0,o.upiAmount||0,o.upiId||"",o.status,isPending(o)?"pending":"paid"].map(q).join(",")));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv"}));a.download="bantai-orders.csv";a.click();
+};
+
+/* ---------- wiring ---------- */
+async function open_(c){
+  code=c.trim().toUpperCase(); $("err").textContent=""; $("go").disabled=true;
+  try{
+    await load();
+    localStorage.setItem("dashCode",code);
+    $("login").classList.add("hide"); $("app").classList.remove("hide");
+  }catch(e){ $("err").textContent="Could not load data. Check the code and that security.sql step 1 was run. ("+e.message+")"; }
+  $("go").disabled=false;
+}
+$("go").onclick=()=>open_($("code").value);
+$("code").onkeydown=e=>{if(e.key==="Enter")open_($("code").value)};
+$("refresh").onclick=()=>load().catch(e=>alert(e.message));
+$("out").onclick=()=>{localStorage.removeItem("dashCode");location.reload()};
+$("fSession").onchange=e=>{selSession=e.target.value;render()};
+$("fPay").onchange=$("fCat").onchange=render;
+const saved=localStorage.getItem("dashCode"); if(saved){$("code").value=saved;open_(saved)}
+</script>
+</body>
+</html>

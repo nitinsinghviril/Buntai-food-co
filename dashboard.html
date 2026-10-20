@@ -133,12 +133,18 @@ function findSessionData(obj){
 function pick(o,re){ for(const k of Object.keys(o)) if(re.test(k)&&typeof o[k]==="number") return o[k]; return null; }
 
 function buildSessions(c){
-  const f = findSessionData(c);
-  let list = f.list.slice();
-  if(f.cur && !list.some(s=>s.start===f.cur)) list.push({start:f.cur,end:null});
-  if(list.length){ sessSource="Sessions from your POS settings"; }
-  else{
-    sessSource="Sessions guessed from gaps of 4+ hours between orders";
+  // The POS saves sessions at settings.sessions as [{id, s: start ms, e: end ms}].
+  // The open (current) session is every bill after the latest session end.
+  let list=[];
+  const saved = c && c.settings && Array.isArray(c.settings.sessions) ? c.settings.sessions : [];
+  saved.forEach(x=>{ if(x && +x.s>0 && +x.e>+x.s) list.push({start:+x.s,end:+x.e}); });
+  if(list.length){
+    sessSource="Sessions from your POS ("+list.length+" closed)";
+    const lastE=Math.max(...list.map(x=>x.end));
+    const open=orders.filter(o=>o.createdAt>lastE);
+    if(open.length) list.push({start:Math.min(...open.map(o=>o.createdAt)),end:null});
+  }else{
+    sessSource="No sessions saved in the POS yet, so sessions are guessed from gaps of 4+ hours between orders";
     const t=orders.map(o=>o.createdAt).sort((a,b)=>a-b); let s=null,last=null;
     t.forEach(x=>{ if(s===null){s=x} else if(x-last>4*3600e3){list.push({start:s,end:last});s=x} last=x; });
     if(s!==null) list.push({start:s,end:null});

@@ -1,5 +1,5 @@
 {
-  "note": "Placeholder from app defaults. Replace with the export from POS Settings.",
+  "note": "Items with photos were added from POS screenshots. Replace this file with the POS export.",
   "categories": [
     "Burgers",
     "Momos Steam",
@@ -144,6 +144,33 @@
       "pieces": null,
       "unit": null,
       "description": ""
+    },
+    {
+      "name": "Milk Shake",
+      "price": 100,
+      "category": "Drinks",
+      "pieces": null,
+      "unit": null,
+      "description": "",
+      "image": "images/chocolate-milkshake.jpg"
+    },
+    {
+      "name": "Peach Ice Tea",
+      "price": 80,
+      "category": "Drinks",
+      "pieces": null,
+      "unit": null,
+      "description": "",
+      "image": "images/peach-iced-tea.jpg"
+    },
+    {
+      "name": "Lemon Ice Tea",
+      "price": 80,
+      "category": "Drinks",
+      "pieces": null,
+      "unit": null,
+      "description": "",
+      "image": "images/lemon-iced-tea.jpg"
     }
   ]
 }

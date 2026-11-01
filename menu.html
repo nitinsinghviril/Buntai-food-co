@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bantai Food Co - Menu</title>
+  <style>
+    :root { --bg: #fff7ed; --card: #ffffff; --ink: #18181b; --muted: #71717a; --accent: #f97316; --line: #fed7aa; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --bg: #18181b; --card: #27272a; --ink: #fafafa; --muted: #a1a1aa; --line: #3f3f46; }
+    }
+    :root[data-theme="dark"] { --bg: #18181b; --card: #27272a; --ink: #fafafa; --muted: #a1a1aa; --line: #3f3f46; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
+    header { padding: 16px; text-align: center; }
+    h1 { font-size: 22px; margin: 0; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .bar { position: sticky; top: 0; background: var(--bg); padding: 10px 16px; border-bottom: 1px solid var(--line); z-index: 5; }
+    input#q { width: 100%; padding: 11px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; }
+    .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    main { padding: 12px 16px 40px; max-width: 640px; margin: 0 auto; }
+    h2 { font-size: 16px; margin: 18px 0 8px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; background: var(--card); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); }
+    .name { font-weight: 700; font-size: 15px; }
+    .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .desc { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.4; }
+    .price { font-weight: 800; font-size: 16px; color: var(--accent); white-space: nowrap; }
+    .empty { text-align: center; color: var(--muted); padding: 40px 0; }
+    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bantai Food Co</h1>
+    <div class="sub">Menu & prices</div>
+  </header>
+  <div class="bar">
+    <input id="q" type="search" placeholder="Search item" aria-label="Search item">
+    <div class="chips" id="chips"></div>
+  </div>
+  <main id="list"><div class="empty">Loading menu…</div></main>
+  <div class="foot" id="updated"></div>
+<script>
+  let data = { categories: [], items: [] };
+  let activeCat = "All";
+  const money = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
+
+  function renderChips() {
+    const wrap = document.getElementById("chips");
+    wrap.innerHTML = "";
+    ["All", ...data.categories].forEach((c) => {
+      const b = document.createElement("button");
+      b.className = "chip" + (activeCat === c ? " on" : "");
+      b.textContent = c;
+      b.onclick = () => { activeCat = c; renderChips(); renderList(); };
+      wrap.append(b);
+    });
+  }
+
+  function renderList() {
+    const list = document.getElementById("list");
+    const q = document.getElementById("q").value.trim().toLowerCase();
+    const items = data.items.filter((i) =>
+      (activeCat === "All" || i.category === activeCat) &&
+      (!q || i.name.toLowerCase().includes(q) || (i.description || "").toLowerCase().includes(q)));
+    list.innerHTML = "";
+    if (!items.length) { list.innerHTML = '<div class="empty">No items found</div>'; return; }
+    const order = data.categories.length ? data.categories : [...new Set(items.map((i) => i.category))];
+    order.forEach((cat) => {
+      const group = items.filter((i) => i.category === cat);
+      if (!group.length) return;
+      const h = document.createElement("h2");
+      h.textContent = cat;
+      list.append(h);
+      group.sort((a, b) => a.name.localeCompare(b.name)).forEach((i) => {
+        const row = document.createElement("div");
+        row.className = "item";
+        const left = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = i.name;
+        left.append(name);
+        const size = i.pieces ? i.pieces + " " + (i.unit || "pcs") : "";
+        if (size) { const m = document.createElement("div"); m.className = "meta"; m.textContent = size; left.append(m); }
+        if (i.description) { const d = document.createElement("div"); d.className = "desc"; d.textContent = i.description; left.append(d); }
+        const p = document.createElement("div");
+        p.className = "price";
+        p.textContent = money(i.price);
+        row.append(left, p);
+        list.append(row);
+      });
+    });
+  }
+
+  document.getElementById("q").addEventListener("input", renderList);
+
+  fetch("menu.json", { cache: "no-cache" })
+    .then((r) => r.json())
+    .then((json) => {
+      data = json;
+      if (!data.categories || !data.categories.length) data.categories = [...new Set(data.items.map((i) => i.category))];
+      renderChips();
+      renderList();
+      if (json.updated) document.getElementById("updated").textContent = "Updated " + json.updated;
+    })
+    .catch(() => {
+      document.getElementById("list").innerHTML = '<div class="empty">Menu could not be loaded. Please try again.</div>';
+    });
+</script>
+</body>
+</html>

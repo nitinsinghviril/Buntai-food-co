@@ -1,0 +1,148 @@
+{
+  "note": "Placeholder from app defaults. Replace with the export from POS Settings.",
+  "categories": [
+    "Burgers",
+    "Momos Steam",
+    "Momos Fried",
+    "Specials",
+    "Drinks"
+  ],
+  "items": [
+    {
+      "name": "Burger Plain",
+      "price": 80,
+      "category": "Burgers",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Cheese Burger",
+      "price": 100,
+      "category": "Burgers",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Peri Peri Burger",
+      "price": 120,
+      "category": "Burgers",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Veg Steam Momo",
+      "price": 100,
+      "category": "Momos Steam",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Peri Peri Steam",
+      "price": 120,
+      "category": "Momos Steam",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Paneer Steam",
+      "price": 120,
+      "category": "Momos Steam",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Corn Cheese Steam",
+      "price": 130,
+      "category": "Momos Steam",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Veg Fried Momo",
+      "price": 120,
+      "category": "Momos Fried",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Peri Peri Fried",
+      "price": 140,
+      "category": "Momos Fried",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Paneer Fried",
+      "price": 140,
+      "category": "Momos Fried",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Corn Cheese Fried",
+      "price": 150,
+      "category": "Momos Fried",
+      "pieces": 6,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Jhal Muri",
+      "price": 60,
+      "category": "Specials",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Makhana Bhel",
+      "price": 100,
+      "category": "Specials",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Kathi Roll",
+      "price": 100,
+      "category": "Specials",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Tang",
+      "price": 50,
+      "category": "Drinks",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Cold Coffee",
+      "price": 100,
+      "category": "Drinks",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    },
+    {
+      "name": "Lebu Julep",
+      "price": 30,
+      "category": "Drinks",
+      "pieces": null,
+      "unit": null,
+      "description": ""
+    }
+  ]
+}

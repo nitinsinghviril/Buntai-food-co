@@ -15,11 +15,12 @@
     .head { display: inline-block; color: #fff; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; padding: 6px 14px; border-radius: 10px; margin-bottom: 8px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 6px 8px; }
     .card { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 12px; padding: 6px; min-width: 0; }
-    .photo { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: #fde7c7; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; color: #c2410c; }
-    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .photo { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: #fde7c7; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .photo img, .photo svg { width: 100%; height: 100%; }
+    .photo img { object-fit: cover; }
     .text { min-width: 0; flex: 1; }
-    .name { font-size: 13px; font-weight: 800; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .meta { font-size: 10px; color: #78716c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .name { font-size: 13px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
+    .meta { font-size: 10px; color: #78716c; line-height: 1.3; }
     .price { font-size: 20px; font-weight: 900; color: #dc2626; line-height: 1.1; white-space: nowrap; }
     .empty { text-align: center; color: #78716c; padding: 40px 0; }
   </style>
@@ -34,6 +35,25 @@
   const COLORS = ["#dc2626", "#ea580c", "#0e7490", "#7e22ce", "#15803d", "#be185d"];
   const money = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
 
+  // Momo shapes drawn from the photos: steamed = round pleated ball, fried = golden crescent.
+  const STEAM = '<svg viewBox="0 0 64 64"><ellipse cx="32" cy="38" rx="22" ry="17" fill="#fffdf7" stroke="#a16207" stroke-width="2"/><path d="M28 22 Q32 12 36 22" fill="none" stroke="#a16207" stroke-width="2"/><path d="M22 30 q4 6 0 12M32 26 q4 8 0 16M42 30 q-4 6 0 12" fill="none" stroke="#c9a86a" stroke-width="1.6" stroke-linecap="round"/>__DOTS__</svg>';
+  const FRIED = '<svg viewBox="0 0 64 64"><path d="M8 44 Q10 16 34 14 Q56 14 54 42 Q32 36 8 44 Z" fill="#f59e0b" stroke="#92400e" stroke-width="2"/><path d="M16 40 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4 l4 -4" fill="none" stroke="#92400e" stroke-width="1.5" stroke-linecap="round"/>__DOTS__</svg>';
+  const RED = '<circle cx="24" cy="32" r="2.2" fill="#dc2626"/><circle cx="36" cy="28" r="2.2" fill="#dc2626"/><circle cx="32" cy="40" r="2.2" fill="#dc2626"/><circle cx="44" cy="36" r="2.2" fill="#dc2626"/><circle cx="20" cy="42" r="2" fill="#dc2626"/>';
+  const YELLOW = '<circle cx="24" cy="32" r="2.2" fill="#facc15"/><circle cx="36" cy="28" r="2.2" fill="#facc15"/><circle cx="32" cy="40" r="2.2" fill="#facc15"/><circle cx="44" cy="36" r="2.2" fill="#facc15"/>';
+  const CATEGORY_ICON = { "Burgers": "🍔", "Drinks": "🥤", "Makhana": "🌰", "Bhel": "🥗", "Specials": "⭐", "Rice & Snacks": "🥣" };
+
+  function iconFor(i) {
+    const n = i.name || "";
+    const cat = i.category || "";
+    if (/fried|fry/i.test(n) || /fried/i.test(cat)) {
+      return FRIED.replace("__DOTS__", /peri/i.test(n) ? RED : /corn/i.test(n) ? YELLOW : "");
+    }
+    if (/momo|steam/i.test(n) || /momo/i.test(cat)) {
+      return STEAM.replace("__DOTS__", /peri/i.test(n) ? RED : /corn/i.test(n) ? YELLOW : "");
+    }
+    return i.icon || CATEGORY_ICON[cat] || "🍽️";
+  }
+
   function card(i) {
     const c = document.createElement("div");
     c.className = "card";
@@ -44,10 +64,10 @@
       img.alt = i.name;
       img.loading = "lazy";
       img.src = i.image;
-      img.onerror = () => { photo.textContent = i.name.charAt(0); };
+      img.onerror = () => { photo.innerHTML = iconFor(i); };
       photo.append(img);
     } else {
-      photo.textContent = i.name.charAt(0);
+      photo.innerHTML = iconFor(i);
     }
     const text = document.createElement("div");
     text.className = "text";
@@ -55,11 +75,11 @@
     name.className = "name";
     name.textContent = i.name;
     text.append(name);
-    if (i.pieces) {
+    if (i.pieces || i.unit) {
       const m = document.createElement("div");
       m.className = "meta";
-      m.textContent = i.pieces + " " + (i.unit || "pcs");
-      text.append(m);
+      m.textContent = (i.pieces ? i.pieces + " " + (i.unit || "pcs") : "");
+      if (m.textContent) text.append(m);
     }
     if (i.description) {
       const d = document.createElement("div");

@@ -134,7 +134,8 @@
       "category": "Drinks",
       "pieces": null,
       "unit": null,
-      "description": ""
+      "description": "",
+      "image": "images/cold-coffee.jpg"
     },
     {
       "name": "Lebu Julep",

@@ -77,7 +77,9 @@
   function render(data) {
     const list = document.getElementById("list");
     list.innerHTML = "";
-    const order = data.categories && data.categories.length ? data.categories : [...new Set(data.items.map((i) => i.category))];
+    const listed = (data.categories || []).map((c) => String(c).trim());
+    const extra = [...new Set(data.items.map((i) => String(i.category || "").trim()))].filter((c) => c && !listed.includes(c));
+    const order = [...listed, ...extra];
     let n = 0;
     order.forEach((cat) => {
       const group = data.items.filter((i) => i.category === cat).sort((a, b) => a.name.localeCompare(b.name));

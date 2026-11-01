@@ -7,13 +7,13 @@
   <style>
     * { box-sizing: border-box; }
     html, body { margin: 0; background: #fff3dc; color: #1f1f1f; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
-    body { padding: 10px; }
+    body { padding: 10px; min-height: 100%; }
     header { text-align: center; padding: 4px 0 10px; }
     header h1 { margin: 0; font-size: clamp(22px, 6vw, 30px); font-weight: 900; color: #dc2626; letter-spacing: .02em; }
     header p { margin: 2px 0 0; font-size: 13px; font-weight: 700; color: #7c2d12; letter-spacing: .12em; text-transform: uppercase; }
     section { background: #fffaf0; border: 2px solid #fed7aa; border-radius: 16px; padding: 8px; margin-bottom: 10px; }
     .head { display: inline-block; color: #fff; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; padding: 6px 14px; border-radius: 10px; margin-bottom: 8px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 6px 8px; }
     .card { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 12px; padding: 6px; min-width: 0; }
     .photo { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: #fde7c7; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; color: #c2410c; }
     .photo img { width: 100%; height: 100%; object-fit: cover; }
@@ -97,11 +97,15 @@
     if (!list.children.length) list.innerHTML = '<div class="empty">No items yet</div>';
   }
 
+  let fromPos = false;
+  window.addEventListener("message", (e) => {
+    if (e.data && e.data.type === "menu") { fromPos = true; render(e.data.data); }
+  });
   fetch("menu.json", { cache: "no-cache" })
     .then((r) => r.json())
-    .then(render)
+    .then((d) => { if (!fromPos) render(d); })
     .catch(() => {
-      document.getElementById("list").innerHTML = '<div class="empty">Menu could not be loaded</div>';
+      if (!fromPos) document.getElementById("list").innerHTML = '<div class="empty">Menu could not be loaded</div>';
     });
 </script>
 </body>

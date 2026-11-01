@@ -12,90 +12,82 @@
     :root[data-theme="dark"] { --bg: #18181b; --card: #27272a; --ink: #fafafa; --muted: #a1a1aa; --line: #3f3f46; }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
-    header { padding: 16px; text-align: center; }
-    h1 { font-size: 22px; margin: 0; }
-    .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
-    .bar { position: sticky; top: 0; background: var(--bg); padding: 10px 16px; border-bottom: 1px solid var(--line); z-index: 5; }
-    input#q { width: 100%; padding: 11px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 15px; }
-    .chips { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; }
-    .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-    main { padding: 12px 16px 40px; max-width: 640px; margin: 0 auto; }
-    h2 { font-size: 16px; margin: 18px 0 8px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
-    .item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; background: var(--card); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--line); }
-    .name { font-weight: 700; font-size: 15px; }
-    .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
-    .desc { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.4; }
-    .thumb { width: 72px; height: 72px; border-radius: 12px; object-fit: cover; flex: 0 0 auto; background: var(--line); }
-    .row { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
-    .price { font-weight: 800; font-size: 16px; color: var(--accent); white-space: nowrap; }
+    header { padding: 12px 14px 8px; text-align: center; }
+    h1 { font-size: 20px; margin: 0; }
+    .bar { position: sticky; top: 0; background: var(--bg); padding: 0 14px 8px; z-index: 5; }
+    input#q { width: 100%; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 14px; }
+    main { padding: 0 12px 24px; max-width: 720px; margin: 0 auto; }
+    h2 { font-size: 13px; margin: 14px 4px 8px; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+    .photo { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--line); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: var(--accent); }
+    .photo img { width: 100%; height: 100%; object-fit: cover; }
+    .body { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .name { font-weight: 700; font-size: 14px; line-height: 1.25; }
+    .meta { color: var(--muted); font-size: 11px; }
+    .desc { color: var(--muted); font-size: 11px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .price { font-weight: 800; font-size: 15px; color: var(--accent); margin-top: auto; padding-top: 4px; }
     .empty { text-align: center; color: var(--muted); padding: 40px 0; }
-    .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+    .foot { text-align: center; color: var(--muted); font-size: 11px; padding-bottom: 14px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Bantai Food Co</h1>
-    <div class="sub">Menu & prices</div>
-  </header>
-  <div class="bar">
-    <input id="q" type="search" placeholder="Search item" aria-label="Search item">
-    <div class="chips" id="chips"></div>
-  </div>
+  <header><h1>Bantai Food Co - Menu</h1></header>
+  <div class="bar"><input id="q" type="search" placeholder="Search item" aria-label="Search item"></div>
   <main id="list"><div class="empty">Loading menu…</div></main>
   <div class="foot" id="updated"></div>
 <script>
   let data = { categories: [], items: [] };
-  let activeCat = "All";
   const money = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
 
-  function renderChips() {
-    const wrap = document.getElementById("chips");
-    wrap.innerHTML = "";
-    ["All", ...data.categories].forEach((c) => {
-      const b = document.createElement("button");
-      b.className = "chip" + (activeCat === c ? " on" : "");
-      b.textContent = c;
-      b.onclick = () => { activeCat = c; renderChips(); renderList(); };
-      wrap.append(b);
-    });
+  function card(i) {
+    const c = document.createElement("div");
+    c.className = "card";
+    const photo = document.createElement("div");
+    photo.className = "photo";
+    if (i.image) {
+      const img = document.createElement("img");
+      img.alt = i.name;
+      img.loading = "lazy";
+      img.src = i.image;
+      img.onerror = () => { photo.textContent = i.name.charAt(0); };
+      photo.append(img);
+    } else {
+      photo.textContent = i.name.charAt(0);
+    }
+    const body = document.createElement("div");
+    body.className = "body";
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = i.name;
+    body.append(name);
+    if (i.pieces) { const m = document.createElement("div"); m.className = "meta"; m.textContent = i.pieces + " " + (i.unit || "pcs"); body.append(m); }
+    if (i.description) { const d = document.createElement("div"); d.className = "desc"; d.textContent = i.description; body.append(d); }
+    const p = document.createElement("div");
+    p.className = "price";
+    p.textContent = money(i.price);
+    body.append(p);
+    c.append(photo, body);
+    return c;
   }
 
   function renderList() {
     const list = document.getElementById("list");
     const q = document.getElementById("q").value.trim().toLowerCase();
     const items = data.items.filter((i) =>
-      (activeCat === "All" || i.category === activeCat) &&
-      (!q || i.name.toLowerCase().includes(q) || (i.description || "").toLowerCase().includes(q)));
+      !q || i.name.toLowerCase().includes(q) || (i.description || "").toLowerCase().includes(q));
     list.innerHTML = "";
     if (!items.length) { list.innerHTML = '<div class="empty">No items found</div>'; return; }
     const order = data.categories.length ? data.categories : [...new Set(items.map((i) => i.category))];
     order.forEach((cat) => {
-      const group = items.filter((i) => i.category === cat);
+      const group = items.filter((i) => i.category === cat).sort((a, b) => a.name.localeCompare(b.name));
       if (!group.length) return;
       const h = document.createElement("h2");
       h.textContent = cat;
-      list.append(h);
-      group.sort((a, b) => a.name.localeCompare(b.name)).forEach((i) => {
-        const row = document.createElement("div");
-        row.className = "item";
-        const left = document.createElement("div");
-        left.style.flex = "1";
-        left.style.minWidth = "0";
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = i.name;
-        left.append(name);
-        const size = i.pieces ? i.pieces + " " + (i.unit || "pcs") : "";
-        if (size) { const m = document.createElement("div"); m.className = "meta"; m.textContent = size; left.append(m); }
-        if (i.description) { const d = document.createElement("div"); d.className = "desc"; d.textContent = i.description; left.append(d); }
-        const p = document.createElement("div");
-        p.className = "price";
-        p.textContent = money(i.price);
-        if (i.image) { const img = document.createElement("img"); img.className = "thumb"; img.alt = i.name; img.loading = "lazy"; img.src = i.image; img.onerror = () => img.remove(); row.append(img); }
-        row.append(left, p);
-        list.append(row);
-      });
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      group.forEach((i) => grid.append(card(i)));
+      list.append(h, grid);
     });
   }
 
@@ -106,7 +98,6 @@
     .then((json) => {
       data = json;
       if (!data.categories || !data.categories.length) data.categories = [...new Set(data.items.map((i) => i.category))];
-      renderChips();
       renderList();
       if (json.updated) document.getElementById("updated").textContent = "Updated " + json.updated;
     })

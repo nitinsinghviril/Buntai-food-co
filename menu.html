@@ -5,36 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bantai Food Co - Menu</title>
   <style>
-    :root { --bg: #fff7ed; --card: #ffffff; --ink: #18181b; --muted: #71717a; --accent: #ea580c; --line: #fed7aa; }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) { --bg: #18181b; --card: #27272a; --ink: #fafafa; --muted: #a1a1aa; --line: #3f3f46; }
-    }
-    :root[data-theme="dark"] { --bg: #18181b; --card: #27272a; --ink: #fafafa; --muted: #a1a1aa; --line: #3f3f46; }
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; overflow: hidden; }
-    body { background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, Segoe UI, sans-serif; display: flex; flex-direction: column; padding: 8px; }
-    header { text-align: center; font-weight: 800; font-size: clamp(15px, 4vw, 18px); padding: 2px 0 6px; }
-    header span { color: var(--accent); }
-    main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .tile { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px; min-width: 0; overflow: hidden; }
-    .photo { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 10px; background: var(--line); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--accent); overflow: hidden; }
+    html, body { margin: 0; background: #fff3dc; color: #1f1f1f; font-family: system-ui, -apple-system, Segoe UI, sans-serif; }
+    body { padding: 10px; }
+    header { text-align: center; padding: 4px 0 10px; }
+    header h1 { margin: 0; font-size: clamp(22px, 6vw, 30px); font-weight: 900; color: #dc2626; letter-spacing: .02em; }
+    header p { margin: 2px 0 0; font-size: 13px; font-weight: 700; color: #7c2d12; letter-spacing: .12em; text-transform: uppercase; }
+    section { background: #fffaf0; border: 2px solid #fed7aa; border-radius: 16px; padding: 8px; margin-bottom: 10px; }
+    .head { display: inline-block; color: #fff; font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: .05em; padding: 6px 14px; border-radius: 10px; margin-bottom: 8px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
+    .card { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 12px; padding: 6px; min-width: 0; }
+    .photo { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: #fde7c7; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; color: #c2410c; }
     .photo img { width: 100%; height: 100%; object-fit: cover; }
-    .text { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .name { font-weight: 700; font-size: clamp(11px, 3vw, 13px); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cat { color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .price { font-weight: 800; font-size: clamp(16px, 5vw, 22px); color: var(--accent); line-height: 1.1; white-space: nowrap; }
-    .empty { grid-column: 1 / -1; align-self: center; text-align: center; color: var(--muted); }
+    .text { min-width: 0; flex: 1; }
+    .name { font-size: 13px; font-weight: 800; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .meta { font-size: 10px; color: #78716c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .price { font-size: 20px; font-weight: 900; color: #dc2626; line-height: 1.1; white-space: nowrap; }
+    .empty { text-align: center; color: #78716c; padding: 40px 0; }
   </style>
 </head>
 <body>
-  <header>Bantai Food Co <span>Menu</span></header>
+  <header>
+    <h1>Bantai Food Co</h1>
+    <p>Menu</p>
+  </header>
   <main id="list"><div class="empty">Loading menu…</div></main>
 <script>
+  const COLORS = ["#dc2626", "#ea580c", "#0e7490", "#7e22ce", "#15803d", "#be185d"];
   const money = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
 
-  function tile(i) {
-    const t = document.createElement("div");
-    t.className = "tile";
+  function card(i) {
+    const c = document.createElement("div");
+    c.className = "card";
     const photo = document.createElement("div");
     photo.className = "photo";
     if (i.image) {
@@ -52,31 +54,47 @@
     const name = document.createElement("div");
     name.className = "name";
     name.textContent = i.name;
-    const cat = document.createElement("div");
-    cat.className = "cat";
-    cat.textContent = i.category + (i.pieces ? " · " + i.pieces + " " + (i.unit || "pcs") : "");
-    text.append(name, cat);
+    text.append(name);
+    if (i.pieces) {
+      const m = document.createElement("div");
+      m.className = "meta";
+      m.textContent = i.pieces + " " + (i.unit || "pcs");
+      text.append(m);
+    }
+    if (i.description) {
+      const d = document.createElement("div");
+      d.className = "meta";
+      d.textContent = i.description;
+      text.append(d);
+    }
     const price = document.createElement("div");
     price.className = "price";
     price.textContent = money(i.price);
-    t.append(photo, text, price);
-    return t;
+    c.append(photo, text, price);
+    return c;
   }
 
   function render(data) {
     const list = document.getElementById("list");
-    const order = data.categories && data.categories.length ? data.categories : [...new Set(data.items.map((i) => i.category))];
-    const items = [];
-    order.forEach((cat) => {
-      data.items.filter((i) => i.category === cat)
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .forEach((i) => items.push(i));
-    });
     list.innerHTML = "";
-    if (!items.length) { list.innerHTML = '<div class="empty">No items yet</div>'; return; }
-    const rows = Math.ceil(items.length / 2);
-    list.style.gridTemplateRows = "repeat(" + rows + ", 1fr)";
-    items.forEach((i) => list.append(tile(i)));
+    const order = data.categories && data.categories.length ? data.categories : [...new Set(data.items.map((i) => i.category))];
+    let n = 0;
+    order.forEach((cat) => {
+      const group = data.items.filter((i) => i.category === cat).sort((a, b) => a.name.localeCompare(b.name));
+      if (!group.length) return;
+      const color = COLORS[n++ % COLORS.length];
+      const sec = document.createElement("section");
+      const head = document.createElement("div");
+      head.className = "head";
+      head.style.background = color;
+      head.textContent = cat;
+      const grid = document.createElement("div");
+      grid.className = "grid";
+      group.forEach((i) => grid.append(card(i)));
+      sec.append(head, grid);
+      list.append(sec);
+    });
+    if (!list.children.length) list.innerHTML = '<div class="empty">No items yet</div>';
   }
 
   fetch("menu.json", { cache: "no-cache" })
